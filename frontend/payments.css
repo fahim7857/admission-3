@@ -1,0 +1,49 @@
+/* Payments Workspace Styles */
+.payments-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .payments-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .payments-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.payment-method-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.payment-method-badge.cash {
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.payment-method-badge.bkash {
+  background: #fdf2f8;
+  color: #be185d;
+}
+
+.payment-method-badge.nagad {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.payment-method-badge.bank {
+  background: #eff6ff;
+  color: #1d4ed8;
+}

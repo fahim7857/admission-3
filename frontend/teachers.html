@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Management & Accounting - Coaching Center Management System</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="teachers.css">
+</head>
+
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="app-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <span class="material-symbols-outlined">school</span>
+        </div>
+        <div class="sidebar-brand">
+          <h1>Coaching Center</h1>
+          <p>ADMIN CONSOLE</p>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="dashboard.html" class="nav-link">
+          <span class="material-symbols-outlined">grid_view</span>
+          Dashboard
+        </a>
+        <a href="students.html" class="nav-link">
+          <span class="material-symbols-outlined">school</span>
+          Students
+        </a>
+        <a href="payments.html" class="nav-link">
+          <span class="material-symbols-outlined">receipt_long</span>
+          Payments
+        </a>
+        <a href="teachers.html" class="nav-link active">
+          <span class="material-symbols-outlined">badge</span>
+          Teachers
+        </a>
+        <a href="monthly-overview.html" class="nav-link">
+          <span class="material-symbols-outlined">calendar_month</span>
+          Monthly Overview
+        </a>
+        <a href="expenses.html" class="nav-link">
+          <span class="material-symbols-outlined">payments</span>
+          Expenses
+        </a>
+        <a href="reports.html" class="nav-link">
+          <span class="material-symbols-outlined">bar_chart</span>
+          Reports
+        </a>
+        <a href="settings.html" class="nav-link">
+          <span class="material-symbols-outlined">settings</span>
+          Settings
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="system-status-badge">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+            <span style="font-weight: 600; color: #1e293b;">Enterprise v2.6</span>
+            <span class="status-indicator"></span>
+          </div>
+          <p style="color: #64748b; font-size: 0.7rem;">Local SQLite Active</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="app-main">
+      <!-- Topbar -->
+      <header class="app-topbar">
+        <div class="topbar-search">
+          <span class="material-symbols-outlined" style="font-size: 1.1rem; color: #64748b;">search</span>
+          <input type="text" id="globalSearchInput" placeholder="Search teacher, activity...">
+        </div>
+
+        <div class="topbar-actions">
+          <span class="badge-tag" id="activeAyBadge">AY 2026</span>
+          <div class="topbar-date" id="topbarDate">27 September 2026</div>
+
+          <button class="btn btn-secondary btn-sm" style="padding: 0.4rem; border-radius: 50%;" title="Notifications">
+            <span class="material-symbols-outlined" style="font-size: 1.2rem;">notifications</span>
+          </button>
+
+          <div class="user-profile">
+            <div class="user-avatar">AU</div>
+            <div class="user-info">
+              <div class="user-name">Admin User</div>
+              <div class="user-role">Superintendent</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Scrollable Body -->
+      <main class="page-content" id="teachers-page">
+        <!-- Header Actions -->
+        <div class="teachers-page-header"
+          style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.65rem;">
+              <h2>Teacher Management & Accounting</h2>
+              <span class="badge-tag" id="teacherCountBadge">0 Teachers</span>
+            </div>
+            <p style="color: #64748b; font-size: 0.80rem; margin-top: 0.2rem;">Manage faculty rates, record daily
+              classes/khatas/guards, and manage salary payments.</p>
+          </div>
+
+          <div class="teachers-header-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="btn btn-secondary btn-sm" id="openActivityModalBtn">
+              <span class="material-symbols-outlined" style="font-size: 1.1rem;">add_task</span>
+              Record Today's Work
+            </button>
+            <button class="btn btn-primary btn-sm" id="openAddTeacherModalBtn">
+              <span class="material-symbols-outlined" style="font-size: 1.1rem;">person_add</span>
+              Add New Teacher
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Summary Cards -->
+        <div class="teachers-kpi-grid">
+          <div class="teachers-kpi-card">
+            <div class="teachers-kpi-header">
+              <span class="teachers-kpi-title">Total Teachers</span>
+              <div class="teachers-kpi-icon" style="background: #e0f2fe; color: #0284c7;">
+                <span class="material-symbols-outlined">badge</span>
+              </div>
+            </div>
+            <div class="teachers-kpi-value" id="kpiTotalTeachers">0</div>
+            <div class="teachers-kpi-sub" style="color: #0284c7;">Active registered faculty</div>
+          </div>
+
+          <div class="teachers-kpi-card">
+            <div class="teachers-kpi-header">
+              <span class="teachers-kpi-title">Current Teacher Payable</span>
+              <div class="teachers-kpi-icon" style="background: #fee2e2; color: #dc2626;">
+                <span class="material-symbols-outlined">account_balance_wallet</span>
+              </div>
+            </div>
+            <div class="teachers-kpi-value" id="kpiTotalPayable" style="color: #dc2626;">৳0</div>
+            <div class="teachers-kpi-sub" style="color: #dc2626;">Total currently owed to teachers</div>
+          </div>
+
+          <div class="teachers-kpi-card">
+            <div class="teachers-kpi-header">
+              <span class="teachers-kpi-title">Today's Total Payment</span>
+              <div class="teachers-kpi-icon" style="background: #dcfce7; color: #16a34a;">
+                <span class="material-symbols-outlined">payments</span>
+              </div>
+            </div>
+            <div class="teachers-kpi-value" id="kpiTodayPayment" style="color: #16a34a;">৳0</div>
+            <div class="teachers-kpi-sub" style="color: #16a34a;">Paid to teachers today</div>
+          </div>
+
+          <div class="teachers-kpi-card">
+            <div class="teachers-kpi-header">
+              <span class="teachers-kpi-title" id="kpiMonthlyTitle">Monthly Payment</span>
+              <div class="teachers-kpi-icon" style="background: #f3e8ff; color: #9333ea;">
+                <span class="material-symbols-outlined">calendar_month</span>
+              </div>
+            </div>
+            <div class="teachers-kpi-value" id="kpiMonthPayment" style="color: #9333ea;">৳0</div>
+            <div class="teachers-kpi-sub" id="kpiMonthSub" style="color: #9333ea;">Paid in selected month</div>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="teachers-tabs">
+          <button class="teachers-tab-btn active" data-tab="teachersListTab">
+            <span class="material-symbols-outlined" style="font-size: 1.1rem;">group</span>
+            Teachers & Monthly Summary
+          </button>
+          <button class="teachers-tab-btn" data-tab="paymentHistoryTab">
+            <span class="material-symbols-outlined" style="font-size: 1.1rem;">receipt_long</span>
+            Payment History Log
+          </button>
+        </div>
+
+        <!-- TAB 1: Teachers List & Monthly Payment Summary -->
+        <div class="tab-content active" id="teachersListTab">
+          <!-- Teacher List Card -->
+          <div class="card" style="padding: 0; overflow: hidden; border: 1px solid var(--outline-variant); margin-bottom: 1.5rem;">
+            <div
+              style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--outline-variant); display: flex; justify-content: space-between; align-items: center; background: #f8fafc; flex-wrap: wrap; gap: 0.5rem;">
+              <div>
+                <h3 style="font-size: 0.90rem; font-weight: 700; color: #1e293b;">Registered Teachers & Current Payable</h3>
+                <p style="font-size: 0.75rem; color: #64748b; margin-top: 0.15rem;">Manage teacher accounts and pay outstanding balances.</p>
+              </div>
+              <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <input type="text" id="teacherSearchInput" placeholder="Filter teachers by name/phone..."
+                  style="padding: 0.35rem 0.65rem; font-size: 0.80rem; border: 1px solid var(--outline); border-radius: 6px; width: 220px;">
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table" style="min-width: 680px;">
+                <thead>
+                  <tr>
+                    <th style="width: 25%;">Teacher Name</th>
+                    <th style="width: 18%;">Contact Phone</th>
+                    <th style="width: 27%;">Rates (Class / Khata / Guard)</th>
+                    <th style="width: 15%;">Current Payable</th>
+                    <th style="width: 15%; text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="teachersTableBody">
+                  <tr>
+                    <td colspan="5" style="text-align: center; padding: 2rem; color: #64748b;">Loading teachers...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Monthly Teacher Payment Summary Card -->
+          <div class="card" style="padding: 0; overflow: hidden; border: 1px solid var(--outline-variant);">
+            <div
+              style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--outline-variant); display: flex; justify-content: space-between; align-items: center; background: #f8fafc; flex-wrap: wrap; gap: 0.75rem;">
+              <div>
+                <h3 style="font-size: 0.90rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 0.4rem;">
+                  <span class="material-symbols-outlined" style="color: #9333ea; font-size: 1.2rem;">summarize</span>
+                  Teacher Payment Summary
+                </h3>
+                <p style="font-size: 0.75rem; color: #64748b; margin-top: 0.15rem;">Calculated from actual teacher payment vouchers (separate from current payable).</p>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+                <label for="paymentMonthFilter" style="font-size: 0.78rem; font-weight: 600; color: #475569;">Select Month:</label>
+                <select id="paymentMonthFilter" class="form-control"
+                  style="padding: 0.35rem 0.75rem; font-size: 0.82rem; font-weight: 600; border: 1px solid #cbd5e1; border-radius: 6px; background: white; cursor: pointer;">
+                  <option value="">Loading months...</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Payment Stat Strip -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; padding: 1rem; background: #fafafa; border-bottom: 1px solid var(--outline-variant);" id="paymentSummaryStatsGrid">
+              <div style="background: white; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <div style="font-size: 0.70rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Today's Teacher Payment</div>
+                <div style="font-size: 1.25rem; font-weight: 700; color: #16a34a; margin-top: 0.2rem;" id="summaryTodayPayment">৳0</div>
+              </div>
+              <div style="background: white; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <div style="font-size: 0.70rem; color: #9333ea; font-weight: 600; text-transform: uppercase;" id="summaryMonthLabel">Selected Month Payment</div>
+                <div style="font-size: 1.25rem; font-weight: 700; color: #9333ea; margin-top: 0.2rem;" id="summaryMonthPayment">৳0</div>
+              </div>
+              <div style="background: white; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <div style="font-size: 0.70rem; color: #0284c7; font-weight: 600; text-transform: uppercase;">Overall Teacher Payments</div>
+                <div style="font-size: 1.25rem; font-weight: 700; color: #0284c7; margin-top: 0.2rem;" id="summaryOverallPayment">৳0</div>
+              </div>
+            </div>
+
+            <!-- Monthly Teacher Payment Table -->
+            <div class="table-responsive">
+              <table class="data-table" style="min-width: 600px;">
+                <thead>
+                  <tr>
+                    <th style="width: 40%;">Teacher</th>
+                    <th style="width: 25%;">Contact Phone</th>
+                    <th style="width: 15%; text-align: center;">Payments Count</th>
+                    <th style="width: 20%; text-align: right;">Total Paid</th>
+                  </tr>
+                </thead>
+                <tbody id="monthlyPaymentsTableBody">
+                  <tr>
+                    <td colspan="4" style="text-align: center; padding: 1.5rem; color: #64748b;">Loading monthly payment breakdown...</td>
+                  </tr>
+                </tbody>
+                <tfoot id="monthlyPaymentsTableFoot" style="background: #f8fafc; font-weight: 700; border-top: 2px solid #e2e8f0;">
+                  <tr>
+                    <td colspan="3" style="text-align: right; padding: 0.65rem 0.75rem; color: #334155;">
+                      <span id="footMonthName">Selected Month</span> Total:
+                    </td>
+                    <td style="text-align: right; padding: 0.65rem 0.75rem; color: #16a34a; font-size: 0.95rem;" id="footMonthTotal">
+                      ৳0
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: Payment History Log -->
+        <div class="tab-content" id="paymentHistoryTab" style="display: none;">
+          <div class="card" style="padding: 0; overflow: hidden; border: 1px solid var(--outline-variant);">
+            <div
+              style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--outline-variant); display: flex; justify-content: space-between; align-items: center; background: #f8fafc; flex-wrap: wrap; gap: 0.5rem;">
+              <h3 style="font-size: 0.88rem; font-weight: 700; color: #1e293b;">Complete Salary Payment History</h3>
+              <select id="paymentTeacherFilter"
+                style="padding: 0.35rem 0.6rem; font-size: 0.80rem; border: 1px solid var(--outline); border-radius: 6px;">
+                <option value="">All Teachers</option>
+              </select>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table" style="min-width: 650px;">
+                <thead>
+                  <tr>
+                    <th style="width: 15%;">Payment Date</th>
+                    <th style="width: 25%;">Teacher Name</th>
+                    <th style="width: 18%;">Contact Phone</th>
+                    <th style="width: 18%;">Amount Paid</th>
+                    <th style="width: 24%;">Note / Description</th>
+                  </tr>
+                </thead>
+                <tbody id="paymentHistoryTableBody">
+                  <tr>
+                    <td colspan="5" style="text-align: center; padding: 2rem; color: #64748b;">Loading payment
+                      history...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- MODAL: Add / Edit Teacher (Scoped, Hidden by default) -->
+  <div id="teacherModal" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="teacherModalTitle">Add New Teacher</h3>
+        <button type="button" class="modal-close" id="closeTeacherModalBtn" aria-label="Close modal">&times;</button>
+      </div>
+      <form id="teacherForm" novalidate>
+        <input type="hidden" id="teacherEditId">
+        <div class="modal-body">
+          <div id="teacherFormError" class="form-error-alert" style="display: none;"></div>
+
+          <div class="form-group">
+            <label class="form-label" for="teacherNameInput">Teacher Name <span
+                style="color: var(--danger);">*</span></label>
+            <input type="text" id="teacherNameInput" class="form-control" required placeholder="e.g. Rahim Sir"
+              autocomplete="off">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="teacherPhoneInput">Phone / Contact Info</label>
+            <input type="tel" id="teacherPhoneInput" class="form-control" placeholder="e.g. 01712-345678">
+          </div>
+
+          <div class="form-rates-grid">
+            <div class="form-group">
+              <label class="form-label" for="perClassRateInput">Per Class (৳) *</label>
+              <input type="number" id="perClassRateInput" class="form-control" value="100" min="0" step="1" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="perKhataRateInput">Per Khata (৳) *</label>
+              <input type="number" id="perKhataRateInput" class="form-control" value="5" min="0" step="1" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="perGuardRateInput">Per Guard (৳) *</label>
+              <input type="number" id="perGuardRateInput" class="form-control" value="150" min="0" step="1" required>
+            </div>
+          </div>
+          <p style="font-size: 0.73rem; color: #64748b; margin-top: -0.25rem;">Rates can be adjusted later at any time.
+            Activity records store applicable rates permanently.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancelTeacherModalBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveTeacherBtn">Save Teacher</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Record Daily Activity (Scoped, Hidden by default) -->
+  <div id="activityModal" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="activityModalTitle">Record Daily Teacher Activity</h3>
+        <button type="button" class="modal-close" id="closeActivityModalBtn" aria-label="Close modal">&times;</button>
+      </div>
+      <form id="activityForm" novalidate>
+        <input type="hidden" id="activityEditId">
+        <div class="modal-body">
+          <div id="activityFormError" class="form-error-alert" style="display: none;"></div>
+
+          <div class="form-group">
+            <label class="form-label" for="activityDateInput">Activity Date <span
+                style="color: var(--danger);">*</span></label>
+            <input type="date" id="activityDateInput" class="form-control" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="activityTeacherSelect">Select Teacher <span
+                style="color: var(--danger);">*</span></label>
+            <select id="activityTeacherSelect" class="form-control" required>
+              <option value="">-- Choose Teacher --</option>
+            </select>
+          </div>
+
+          <div class="form-rates-grid">
+            <div class="form-group">
+              <label class="form-label" for="classesTakenInput">Classes Taken</label>
+              <input type="number" id="classesTakenInput" class="form-control" value="1" min="0" step="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="khatasCheckedInput">Khatas Checked</label>
+              <input type="number" id="khatasCheckedInput" class="form-control" value="0" min="0" step="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="guardDutiesInput">Guard Duties</label>
+              <input type="number" id="guardDutiesInput" class="form-control" value="0" min="0" step="1">
+            </div>
+          </div>
+
+          <!-- Live Automatic Calculation Preview -->
+          <div
+            style="background: #f8fafc; border: 1px dashed var(--outline-variant); padding: 0.75rem; border-radius: 8px;">
+            <div style="font-weight: 700; font-size: 0.80rem; color: #1e293b; margin-bottom: 0.35rem;">Live Earnings
+              Calculation:</div>
+            <div style="font-size: 0.76rem; color: #475569; display: flex; flex-direction: column; gap: 0.2rem;">
+              <div id="previewClassCalc">Classes: 0 × ৳0 = ৳0</div>
+              <div id="previewKhataCalc">Khatas: 0 × ৳0 = ৳0</div>
+              <div id="previewGuardCalc">Guards: 0 × ৳0 = ৳0</div>
+              <div
+                style="font-weight: 700; font-size: 0.82rem; color: #0284c7; margin-top: 0.25rem; border-top: 1px solid #e2e8f0; padding-top: 0.25rem;"
+                id="previewTotalCalc">Daily Total: ৳0</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancelActivityModalBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveActivityBtn">Save Activity</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Teacher Detailed Summary & Pay confirmation -->
+  <div id="teacherDetailModal" class="modal-overlay">
+    <div class="modal-dialog" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="detailTeacherName">Teacher Summary & Ledger</h3>
+        <button type="button" class="modal-close" id="closeDetailModalBtn" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body" style="gap: 1rem;">
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
+          <div
+            style="background: #f8fafc; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--outline-variant);">
+            <div style="font-size: 0.70rem; color: #64748b; font-weight: 700;">TOTAL WORKLOAD</div>
+            <div style="font-size: 0.88rem; font-weight: 700; color: #0f172a; margin-top: 0.25rem;"
+              id="detailWorkSummary">0 Cls | 0 Khatas | 0 Guards</div>
+          </div>
+          <div
+            style="background: #f8fafc; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--outline-variant);">
+            <div style="font-size: 0.70rem; color: #64748b; font-weight: 700;">TOTAL EARNED</div>
+            <div style="font-size: 1.15rem; font-weight: 700; color: #16a34a; margin-top: 0.25rem;"
+              id="detailTotalEarned">৳0</div>
+          </div>
+          <div style="background: #fdf2f2; padding: 0.75rem; border-radius: 8px; border: 1px solid #fecaca;">
+            <div style="font-size: 0.70rem; color: #dc2626; font-weight: 700;">CURRENT PAYABLE</div>
+            <div style="font-size: 1.15rem; font-weight: 700; color: #dc2626; margin-top: 0.25rem;"
+              id="detailCurrentPayable">৳0</div>
+          </div>
+        </div>
+
+        <!-- Payment Action Box -->
+        <div
+          style="background: #e0f2fe; padding: 0.85rem 1rem; border-radius: 8px; border: 1px solid #bae6fd; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+          <div>
+            <div style="font-weight: 700; color: #0369a1; font-size: 0.84rem;">Pay Teacher Balance</div>
+            <div style="font-size: 0.74rem; color: #0284c7;">Records payment in teacher history, logs an expense under
+              "Teacher Salary", and resets balance to ৳0.</div>
+          </div>
+          <button class="btn btn-primary btn-sm" id="payTeacherBtn" style="background: #0284c7; white-space: nowrap;">
+            <span class="material-symbols-outlined" style="font-size: 1rem;">payments</span>
+            <span id="payBtnLabel">Pay Outstanding (৳0)</span>
+          </button>
+        </div>
+
+        <!-- Teacher's Recent Activity Ledger -->
+        <div>
+          <h4
+            style="font-size: 0.80rem; font-weight: 700; color: #1e293b; margin-bottom: 0.35rem; display: flex; justify-content: space-between; align-items: center;">
+            <span>Recent Work Activity</span>
+            <span style="font-size: 0.72rem; color: #64748b; font-weight: 500;">Recorded daily duties</span>
+          </h4>
+          <div
+            style="max-height: 140px; overflow-y: auto; border: 1px solid var(--outline-variant); border-radius: 6px;">
+            <table class="data-table" style="font-size: 0.76rem;">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Classes</th>
+                  <th>Khatas</th>
+                  <th>Guards</th>
+                  <th>Daily Total</th>
+                </tr>
+              </thead>
+              <tbody id="detailActivityHistoryBody">
+                <tr>
+                  <td colspan="5" style="text-align: center; padding: 0.75rem; color: #64748b;">No activities recorded
+                    yet</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Teacher's Payment History -->
+        <div>
+          <h4
+            style="font-size: 0.80rem; font-weight: 700; color: #1e293b; margin-bottom: 0.35rem; display: flex; justify-content: space-between; align-items: center;">
+            <span>Payment History</span>
+            <span style="font-size: 0.72rem; color: #64748b; font-weight: 500;">Cleared payments</span>
+          </h4>
+          <div
+            style="max-height: 140px; overflow-y: auto; border: 1px solid var(--outline-variant); border-radius: 6px;">
+            <table class="data-table" style="font-size: 0.76rem;">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Amount Paid</th>
+                  <th>Voucher / Description</th>
+                </tr>
+              </thead>
+              <tbody id="detailPaymentHistoryBody">
+                <tr>
+                  <td colspan="3" style="text-align: center; padding: 0.75rem; color: #64748b;">No payment history
+                    recorded yet</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" id="closeDetailBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="teachers.js"></script>
+</body>
+
+</html>

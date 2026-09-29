@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Institutional Expenses - Coaching Center Management System</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="expenses.css">
+</head>
+
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="app-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <span class="material-symbols-outlined">school</span>
+        </div>
+        <div class="sidebar-brand">
+          <h1>Coaching Center</h1>
+          <p>ADMIN CONSOLE</p>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="dashboard.html" class="nav-link">
+          <span class="material-symbols-outlined">grid_view</span>
+          Dashboard
+        </a>
+        <a href="students.html" class="nav-link">
+          <span class="material-symbols-outlined">school</span>
+          Students
+        </a>
+        <a href="payments.html" class="nav-link">
+          <span class="material-symbols-outlined">receipt_long</span>
+          Payments
+        </a>
+        <a href="teachers.html" class="nav-link">
+          <span class="material-symbols-outlined">badge</span>
+          Teachers
+        </a>
+        <a href="monthly-overview.html" class="nav-link">
+          <span class="material-symbols-outlined">calendar_month</span>
+          Monthly Overview
+        </a>
+        <a href="expenses.html" class="nav-link active">
+          <span class="material-symbols-outlined">payments</span>
+          Expenses
+        </a>
+        <a href="reports.html" class="nav-link">
+          <span class="material-symbols-outlined">bar_chart</span>
+          Reports
+        </a>
+        <a href="settings.html" class="nav-link">
+          <span class="material-symbols-outlined">settings</span>
+          Settings
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="system-status-badge">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+            <span style="font-weight: 600; color: #1e293b;">Enterprise v2.6</span>
+            <span class="status-indicator"></span>
+          </div>
+          <p style="color: #64748b; font-size: 0.7rem;">Local SQLite Active</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="app-main">
+      <!-- Topbar -->
+      <header class="app-topbar">
+        <div class="topbar-search">
+          <span class="material-symbols-outlined" style="font-size: 1.1rem; color: #64748b;">search</span>
+          <input type="text" placeholder="Search student, roll, payment...">
+        </div>
+
+        <div class="topbar-actions">
+          <span class="badge-tag">AY 2026</span>
+          <div class="topbar-date">18 September 2026</div>
+
+          <button class="btn btn-secondary btn-sm" style="padding: 0.4rem; border-radius: 50%;" title="Notifications">
+            <span class="material-symbols-outlined" style="font-size: 1.2rem;">notifications</span>
+          </button>
+
+          <div class="user-profile">
+            <div class="user-avatar">AU</div>
+            <div class="user-info">
+              <div class="user-name">Admin User</div>
+              <div class="user-role">Superintendent</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Scrollable Body -->
+      <main class="page-content">
+        <!-- Header Actions -->
+        <div
+          style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <h1 style="font-size: 1.5rem; font-weight: 800;">Institutional Expenses</h1>
+              <span class="status-pill active">● Expense Auditing</span>
+            </div>
+            <p style="font-size: 0.85rem; color: #64748b; margin-top: 2px;">
+              Manage institutional operational expenditures, categorizations, and outgoing vouchers.
+            </p>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="btn btn-secondary btn-sm" onclick="openDailyVoucherModal('expenses')">
+              <span class="material-symbols-outlined" style="font-size: 1.1rem;">calendar_today</span>
+              Print Daily Voucher
+            </button>
+
+            <button class="btn btn-secondary btn-sm" onclick="openMonthlyVoucherModal('expenses')">
+              <span class="material-symbols-outlined" style="font-size: 1.1rem;">calendar_month</span>
+              Print Monthly Voucher
+            </button>
+
+            <button class="btn btn-secondary btn-sm" onclick="exportExpensesToExcel()">
+              <span class="material-symbols-outlined" style="font-size: 1.1rem;">download</span>
+              Export to Excel
+            </button>
+
+            <button class="btn btn-secondary btn-sm" onclick="openModal('modal-add-category-dialog')">
+              <span class="material-symbols-outlined" style="font-size: 1.1rem;">category</span>
+              + Add Category
+            </button>
+
+            <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-expense-dialog')">
+              <span class="material-symbols-outlined" style="font-size: 1.1rem;">receipt</span>
+              + Add Expense
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Top KPI Cards -->
+        <div class="expenses-kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">TOTAL OPERATIONAL OUTFLOW</div>
+            <div class="kpi-value" style="color: #dc2626;" id="stat-total-expenses">৳ 0.00</div>
+            <div class="kpi-subtitle">All logged expenditure vouchers</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-label">EXPENSE VOUCHERS</div>
+            <div class="kpi-value" id="stat-expense-count">0 Vouchers</div>
+            <div class="kpi-subtitle">Categorized operational records</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-label">TOP SPENDING CATEGORY</div>
+            <div class="kpi-value" style="color: #7c3aed;" id="stat-top-category">Rent</div>
+            <div class="kpi-subtitle" id="stat-top-cat-amount">৳0 recorded</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-label">AVERAGE PER VOUCHER</div>
+            <div class="kpi-value" style="color: #0284c7;" id="stat-avg-expense">৳ 0.00</div>
+            <div class="kpi-subtitle">Typical institutional payment</div>
+          </div>
+        </div>
+
+        <!-- Interactive Category Chips Bar -->
+        <div class="category-chips-bar" id="category-chips-container">
+          <!-- Populated dynamically -->
+        </div>
+
+        <!-- Filter Toolbar -->
+        <div class="filters-bar" style="margin-bottom: 1.5rem;">
+          <div class="topbar-search" style="flex: 1 1 220px; max-width: 320px;">
+            <span class="material-symbols-outlined" style="font-size: 1.1rem; color: #64748b;">search</span>
+            <input type="text" id="expense-filter-search" placeholder="Search description, voucher...">
+          </div>
+
+          <div class="filter-group">
+            <select id="expense-filter-cat" class="form-control"
+              style="width: auto; min-width: 140px; font-size: 0.82rem; padding: 0.45rem 0.75rem;">
+              <option value="">All Categories</option>
+            </select>
+          </div>
+
+          <div class="filter-group" style="gap: 0.5rem; flex-wrap: wrap;">
+            <span style="font-size: 0.75rem; color: #64748b;">Dates:</span>
+            <input type="date" id="expense-filter-start" class="form-control"
+              style="font-size: 0.8rem; padding: 0.4rem 0.6rem; width: auto; min-width: 130px; flex: 1 1 auto;">
+            <span style="font-size: 0.75rem; color: #64748b;">to</span>
+            <input type="date" id="expense-filter-end" class="form-control"
+              style="font-size: 0.8rem; padding: 0.4rem 0.6rem; width: auto; min-width: 130px; flex: 1 1 auto;">
+          </div>
+        </div>
+
+        <!-- Expenses Table -->
+        <div class="data-table-container">
+          <table class="data-table expenses-page-table">
+            <thead>
+              <tr>
+                <th>Voucher #</th>
+                <th>Expense Date</th>
+                <th>Category</th>
+                <th>Description & Particulars</th>
+                <th>Amount (৳)</th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="expenses-tbody">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal: Add Expense -->
+  <div id="modal-add-expense-dialog" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Record Institutional Expense</h3>
+        <button class="modal-close" onclick="closeModal('modal-add-expense-dialog')">&times;</button>
+      </div>
+      <form id="form-modal-add-expense">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Expense Category *</label>
+              <select name="category_id" id="modal-expense-cat" class="form-control" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Amount (৳) *</label>
+              <input type="number" step="any" name="amount" class="form-control" placeholder="e.g. 2500" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Expense Particulars / Description *</label>
+            <input type="text" name="description" class="form-control"
+              placeholder="e.g. Photocopy paper bundles (10 reams) and whiteboard markers" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Date of Expenditure</label>
+            <input type="date" name="expense_date" class="form-control" value="2026-09-18">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary"
+            onclick="closeModal('modal-add-expense-dialog')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Expense Voucher</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add Category -->
+  <div id="modal-add-category-dialog" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">New Expense Category</h3>
+        <button class="modal-close" onclick="closeModal('modal-add-category-dialog')">&times;</button>
+      </div>
+      <form id="form-modal-add-category">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Category Name *</label>
+            <input type="text" name="category_name" class="form-control" placeholder="e.g. Software & Lab Subscriptions"
+              required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary"
+            onclick="closeModal('modal-add-category-dialog')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Category</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="expenses.js"></script>
+</body>
+
+</html>

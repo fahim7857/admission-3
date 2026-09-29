@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dossier - Coaching Center Management System</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="student-details.css">
+</head>
+
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="app-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <span class="material-symbols-outlined">school</span>
+        </div>
+        <div class="sidebar-brand">
+          <h1>Coaching Center</h1>
+          <p>ADMIN CONSOLE</p>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="dashboard.html" class="nav-link">
+          <span class="material-symbols-outlined">grid_view</span>
+          Dashboard
+        </a>
+        <a href="students.html" class="nav-link active">
+          <span class="material-symbols-outlined">school</span>
+          Students
+        </a>
+        <a href="payments.html" class="nav-link">
+          <span class="material-symbols-outlined">receipt_long</span>
+          Payments
+        </a>
+        <a href="monthly-overview.html" class="nav-link">
+          <span class="material-symbols-outlined">calendar_month</span>
+          Monthly Overview
+        </a>
+        <a href="expenses.html" class="nav-link">
+          <span class="material-symbols-outlined">payments</span>
+          Expenses
+        </a>
+        <a href="reports.html" class="nav-link">
+          <span class="material-symbols-outlined">bar_chart</span>
+          Reports
+        </a>
+        <a href="settings.html" class="nav-link">
+          <span class="material-symbols-outlined">settings</span>
+          Settings
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="system-status-badge">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+            <span style="font-weight: 600; color: #1e293b;">Enterprise v2.6</span>
+            <span class="status-indicator"></span>
+          </div>
+          <p style="color: #64748b; font-size: 0.7rem;">Local SQLite Active</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="app-main">
+      <!-- Topbar -->
+      <header class="app-topbar">
+        <div class="topbar-search">
+          <span class="material-symbols-outlined" style="font-size: 1.1rem; color: #64748b;">search</span>
+          <input type="text" placeholder="Search student, roll, payment...">
+        </div>
+
+        <div class="topbar-actions">
+          <span class="badge-tag">AY 2026</span>
+          <div class="topbar-date">18 September 2026</div>
+
+          <button class="btn btn-secondary btn-sm" style="padding: 0.4rem; border-radius: 50%;" title="Notifications">
+            <span class="material-symbols-outlined" style="font-size: 1.2rem;">notifications</span>
+          </button>
+
+          <div class="user-profile">
+            <div class="user-avatar">AU</div>
+            <div class="user-info">
+              <div class="user-name">Admin User</div>
+              <div class="user-role">Superintendent</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Scrollable Body -->
+      <main class="page-content">
+        <!-- Breadcrumbs & Action Bar -->
+        <div
+          style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #64748b;">
+            <a href="students.html" style="color: var(--primary); text-decoration: none; font-weight: 500;">Students</a>
+            <span>&rsaquo;</span>
+            <span id="breadcrumb-class">Class 5</span>
+            <span>&rsaquo;</span>
+            <span id="breadcrumb-roll-name" style="font-weight: 600; color: var(--on-surface);">Roll 508 - Rahim
+              Ahmed</span>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <button class="btn btn-primary btn-sm" id="btn-record-payment-top"
+              onclick="openPaymentForMonth('September')">
+              Record Payment
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="openEditCurrentStudent()">
+              <span class="material-symbols-outlined" style="font-size: 1rem;">edit</span>
+              Edit Student
+            </button>
+          </div>
+        </div>
+
+        <!-- Student Profile Card -->
+        <div class="student-profile-card">
+          <div style="display: flex; gap: 1.25rem; align-items: flex-start;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                <span class="badge-tag" id="profile-roll-badge" style="font-size: 0.8rem;">Roll #508</span>
+                <h2 id="profile-name" style="font-size: 1.35rem; font-weight: 700;">Rahim Ahmed</h2>
+              </div>
+              <p id="profile-class-batch" style="font-size: 0.82rem; color: #64748b; margin-bottom: 0.65rem;">Class 5 •
+                Standard Batch</p>
+
+              <div
+                style="font-size: 0.8rem; color: #475569; display: grid; grid-template-columns: auto 1fr; gap: 0.35rem 1rem;">
+                <span style="color: #94a3b8;">Father:</span> <span id="profile-father" style="font-weight: 500;">Kamal
+                  Ahmed</span>
+                <span style="color: #94a3b8;">Mother:</span> <span id="profile-mother" style="font-weight: 500;">Nasreen
+                  Sultana</span>
+                <span style="color: #94a3b8;">Phone:</span> <span id="profile-phone"
+                  style="font-weight: 600; color: #004ac6;">01712-345678</span>
+                <span style="color: #94a3b8;">Address:</span> <span id="profile-address">House 42, Road 7, Dhanmondi,
+                  Dhaka</span>
+              </div>
+            </div>
+          </div>
+
+          <div
+            style="background: var(--surface-low); border: 1px solid var(--outline-variant); border-radius: 8px; padding: 1rem; min-width: 240px; font-size: 0.8rem;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+              <span style="color: #64748b;">Academic Year:</span>
+              <span style="font-weight: 600;">2026</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+              <span style="color: #64748b;">Admitted:</span>
+              <span style="font-weight: 600;" id="meta-admission-date">10 Jan 2026</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+              <span style="color: #64748b;">Fixed Fee:</span>
+              <span style="font-weight: 700; color: #004ac6;" id="meta-fixed-fee">৳ 1,000.00 / mo</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #64748b;">System ID:</span>
+              <span style="font-family: monospace; font-size: 0.75rem;" id="meta-system-id">STU-2026-0508</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Summary Metric Cards -->
+        <div class="dashboard-grid-kpi" style="margin-bottom: 1.5rem;">
+          <div class="kpi-card">
+            <div class="kpi-label">TOTAL PAID</div>
+            <div class="kpi-value" style="color: #16a34a;" id="metric-total-paid">৳ 8,000.00</div>
+            <div class="kpi-subtitle" id="metric-paid-sub">80.0% collected</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-label">TOTAL DUE</div>
+            <div class="kpi-value" style="color: #dc2626;" id="metric-total-due">৳ 2,000.00</div>
+            <div class="kpi-subtitle" id="metric-due-sub">Pending clearance</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-label">MONTHS PAID</div>
+            <div class="kpi-value" style="color: #0284c7;" id="metric-months-paid">8 Months</div>
+            <div class="kpi-subtitle">January to August 2026</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-label">MONTHS DUE</div>
+            <div class="kpi-value" style="color: #ea580c;" id="metric-months-due">2 Months</div>
+            <div class="kpi-subtitle">September, October cycle</div>
+          </div>
+        </div>
+
+        <!-- Annual Fee Lifecycle Grid -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Annual Fee Lifecycle (AY 2026)</h3>
+              <p style="font-size: 0.75rem; color: #64748b;">12-month payment status tracking from student admission</p>
+            </div>
+            <span class="badge-tag">Full Year Status</span>
+          </div>
+
+          <div class="annual-matrix-grid" id="lifecycle-matrix-container">
+            <!-- 12 Months rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Comprehensive Fee Ledger -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Comprehensive Fee Ledger</h3>
+              <p style="font-size: 0.75rem; color: #64748b;">Complete verified audit history of all fee payments</p>
+            </div>
+            <span class="badge-tag">Verified Payments</span>
+          </div>
+
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Billing Month</th>
+                  <th>Fee Amount</th>
+                  <th>Settlement Date</th>
+                  <th>Timestamp</th>
+                  <th>Receipt No</th>
+                  <th>Payment Method</th>
+                  <th>Authorized By</th>
+                  <th style="text-align: right;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="ledger-tbody">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal: Record Payment with Duplicate Prevention -->
+  <div id="modal-student-payment" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Record Monthly Tuition Fee</h3>
+        <button class="modal-close" onclick="closeModal('modal-student-payment')">&times;</button>
+      </div>
+      <form id="form-record-student-payment">
+        <div class="modal-body">
+          <!-- Duplicate Warning Banner -->
+          <div id="duplicate-warning-banner"
+            style="display: none; background: #fef2f2; border: 1px solid #f87171; color: #991b1b; padding: 0.85rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.8rem;">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Billing Month *</label>
+              <select name="month" id="pay-month-select" class="form-control" required>
+                <option value="January">January</option>
+                <option value="February">February</option>
+                <option value="March">March</option>
+                <option value="April">April</option>
+                <option value="May">May</option>
+                <option value="June">June</option>
+                <option value="July">July</option>
+                <option value="August">August</option>
+                <option value="September" selected>September</option>
+                <option value="October">October</option>
+                <option value="November">November</option>
+                <option value="December">December</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Fee Amount (৳) *</label>
+              <input type="number" id="pay-amount-input" name="amount" class="form-control" required min="1" step="any" value="1000">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Payment Method</label>
+              <select name="payment_method" class="form-control">
+                <option value="Cash" selected>Cash</option>
+                <option value="bKash">bKash</option>
+                <option value="Nagad">Nagad</option>
+                <option value="Bank">Bank Deposit</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Settlement Date</label>
+              <input type="date" name="payment_date" class="form-control" value="2026-09-18">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Note / Collector Remarks</label>
+            <input type="text" name="note" class="form-control" value="Monthly tuition fee">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-student-payment')">Cancel</button>
+          <button type="submit" id="btn-submit-payment" class="btn btn-primary">Confirm & Print Voucher</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Edit Student -->
+  <div id="modal-edit-student-details-dialog" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Edit Student Profile</h3>
+        <button class="modal-close" onclick="closeModal('modal-edit-student-details-dialog')">&times;</button>
+      </div>
+      <form id="form-edit-student-details-modal">
+        <input type="hidden" name="student_id">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Assigned Roll</label>
+              <input type="text" name="roll_number" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Class</label>
+              <input type="text" name="class_name" class="form-control" readonly>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Student Full Name *</label>
+            <input type="text" name="name" class="form-control" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Father's Name</label>
+              <input type="text" name="father_name" class="form-control" placeholder="Enter father's name (optional)">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mother's Name</label>
+              <input type="text" name="mother_name" class="form-control" placeholder="Enter mother's name (optional)">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group" style="grid-column: span 2;">
+              <label class="form-label">Phone Number *</label>
+              <input type="tel" name="phone" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Admission Date</label>
+            <input type="date" name="admission_date" class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Residential Address</label>
+            <textarea name="address" class="form-control" rows="2" placeholder="Enter address (optional)"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-edit-student-details-dialog')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="student-details.js"></script>
+</body>
+
+</html>

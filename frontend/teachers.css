@@ -1,0 +1,376 @@
+/* ==========================================================================
+   Teacher Management & Accounting - Compact, Responsive Stylesheet
+   ========================================================================== */
+
+/* Page Container Font Sizing & Spacing */
+#teachers-page {
+  font-size: 0.82rem;
+  color: var(--on-surface);
+}
+
+#teachers-page h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+/* KPI Summary Cards */
+.teachers-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.teachers-kpi-card {
+  padding: 0.95rem 1.15rem;
+  background: var(--surface-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100px;
+}
+
+.teachers-kpi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+
+.teachers-kpi-title {
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.teachers-kpi-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.teachers-kpi-value {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.teachers-kpi-sub {
+  font-size: 0.72rem;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+/* Navigation Tabs */
+.teachers-tabs {
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.teachers-tab-btn {
+  background: transparent;
+  border: none;
+  padding: 0.65rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.teachers-tab-btn:hover {
+  color: var(--primary);
+  background-color: var(--surface-low);
+}
+
+.teachers-tab-btn.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  background-color: transparent;
+}
+
+/* Compact Accounting Data Tables */
+.table-responsive {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+#teachers-page .data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.80rem;
+  text-align: left;
+}
+
+#teachers-page .data-table th {
+  font-size: 0.72rem !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.5rem 0.65rem !important;
+  background: #f8fafc;
+  color: #475569;
+  border-bottom: 1px solid var(--outline-variant);
+  white-space: nowrap;
+}
+
+#teachers-page .data-table td {
+  padding: 0.45rem 0.65rem !important;
+  font-size: 0.80rem !important;
+  color: #1e293b;
+  border-bottom: 1px solid var(--outline-variant);
+  vertical-align: middle;
+}
+
+#teachers-page .data-table tr:hover {
+  background-color: #f8fafc;
+}
+
+/* Excel Style Table Specifics */
+.excel-table th,
+.excel-table td {
+  white-space: nowrap;
+}
+
+.excel-table tbody tr:nth-child(even) {
+  background-color: #fafbfc;
+}
+
+.excel-table tbody tr:hover {
+  background-color: #eff6ff !important;
+}
+
+/* Modal Overlay & Dialog Styles */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.modal-overlay.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.modal-dialog {
+  background: var(--surface-lowest);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid var(--outline-variant);
+  transform: scale(0.96) translateY(8px);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.modal-overlay.open .modal-dialog {
+  transform: scale(1) translateY(0);
+}
+
+.modal-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #fafbfc;
+}
+
+.modal-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+}
+
+.modal-close:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.modal-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.modal-footer {
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid var(--outline-variant);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  background-color: #fafbfc;
+  border-bottom-left-radius: var(--radius-lg);
+  border-bottom-right-radius: var(--radius-lg);
+}
+
+/* Rate inputs row */
+.form-rates-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.65rem;
+}
+
+.form-error-alert {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: 0.55rem 0.85rem;
+  border-radius: var(--radius-md);
+  font-size: 0.80rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.rate-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.74rem;
+  background: #f1f5f9;
+  color: #334155;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+/* Action button styles */
+.action-btns {
+  display: flex;
+  gap: 0.35rem;
+  justify-content: flex-end;
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 1024px) {
+  .teachers-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem;
+  }
+}
+
+@media (max-width: 768px) {
+  #teachers-page {
+    font-size: 0.80rem;
+  }
+
+  .teachers-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+  }
+
+  .teachers-kpi-value {
+    font-size: 1.25rem;
+  }
+
+  .teachers-page-header {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+  }
+
+  .teachers-header-actions {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .teachers-header-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .form-rates-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .ledger-filter-bar {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 0.5rem !important;
+  }
+
+  .ledger-filter-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .ledger-filter-controls select,
+  .ledger-filter-controls input {
+    flex: 1 1 120px;
+    width: auto;
+  }
+
+  #ledgerSummaryStats {
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  .modal-dialog {
+    max-width: 96% !important;
+    margin: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .teachers-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}

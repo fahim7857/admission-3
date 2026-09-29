@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Coaching Center Management System</title>
+  <link rel="stylesheet" href="css/fonts.css">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="app-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <span class="material-symbols-outlined">school</span>
+        </div>
+        <div class="sidebar-brand">
+          <h1>Coaching Center</h1>
+          <p>ADMIN CONSOLE</p>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="dashboard.html" class="nav-link active">
+          <span class="material-symbols-outlined">grid_view</span>
+          Dashboard
+        </a>
+        <a href="students.html" class="nav-link">
+          <span class="material-symbols-outlined">school</span>
+          Students
+        </a>
+        <a href="payments.html" class="nav-link">
+          <span class="material-symbols-outlined">receipt_long</span>
+          Payments
+        </a>
+        <a href="teachers.html" class="nav-link">
+          <span class="material-symbols-outlined">badge</span>
+          Teachers
+        </a>
+        <a href="monthly-overview.html" class="nav-link">
+          <span class="material-symbols-outlined">calendar_month</span>
+          Monthly Overview
+        </a>
+        <a href="expenses.html" class="nav-link">
+          <span class="material-symbols-outlined">payments</span>
+          Expenses
+        </a>
+        <a href="reports.html" class="nav-link">
+          <span class="material-symbols-outlined">bar_chart</span>
+          Reports
+        </a>
+        <a href="settings.html" class="nav-link">
+          <span class="material-symbols-outlined">settings</span>
+          Settings
+        </a>
+        <a href="admin.html" class="nav-link" id="nav-admin-link" style="display: none; color: #2563eb; font-weight: 700;">
+          <span class="material-symbols-outlined">admin_panel_settings</span>
+          Admin Panel
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="system-status-badge">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+            <span style="font-weight: 600; color: #1e293b;">Enterprise v2.6</span>
+            <span class="status-indicator"></span>
+          </div>
+          <p style="color: #64748b; font-size: 0.7rem;">Local SQLite Active</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="app-main">
+      <!-- Topbar -->
+      <header class="app-topbar">
+        <div class="topbar-search">
+          <span class="material-symbols-outlined" style="font-size: 1.1rem; color: #64748b;">search</span>
+          <input type="text" placeholder="Search student, roll, payment..." id="global-search-input">
+        </div>
+
+        <div class="topbar-actions">
+          <span class="badge-tag" id="topbar-ay-badge">Loading...</span>
+          <div class="topbar-date"></div>
+
+          <button class="btn btn-secondary btn-sm" style="padding: 0.4rem; border-radius: 50%;" title="Notifications">
+            <span class="material-symbols-outlined" style="font-size: 1.2rem;">notifications</span>
+          </button>
+
+          <div class="user-profile">
+            <div class="user-avatar">AU</div>
+            <div class="user-info">
+              <div class="user-name">Admin User</div>
+              <div class="user-role">Superintendent</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Scrollable Body -->
+      <main class="page-content">
+        <!-- Action Header -->
+        <div
+          style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <h1 style="font-size: 1.5rem; font-weight: 800;">Dashboard</h1>
+              <span class="status-pill active" style="font-size: 0.7rem;">● Live Sync Active</span>
+            </div>
+            <p style="font-size: 0.85rem; color: #64748b; margin-top: 2px;">
+              Financial performance, fee pipelines, and student attendance overview for <span
+                id="dash-ay-title">Academic Year</span>.
+            </p>
+          </div>
+
+          <div class="page-action-header-right"
+            style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <select id="dashboard-ay-filter" class="form-control"
+              style="width: auto; min-width: 140px; font-size: 0.82rem; padding: 0.45rem 0.75rem;">
+            </select>
+
+            <select id="period-filter-select" class="form-control"
+              style="width: auto; min-width: 125px; font-size: 0.82rem; padding: 0.45rem 0.75rem;">
+              <option value="today" selected>Today 📅</option>
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+              <option value="overall">Overall AY</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 4 Top KPI Cards -->
+        <div class="dashboard-grid-kpi">
+          <!-- KPI 1 -->
+          <div class="kpi-card">
+            <div class="kpi-label">TOTAL STUDENTS</div>
+            <div class="kpi-value" id="kpi-total-students"></div>
+            <div class="kpi-subtitle" id="kpi-students-sub">
+              5 Classes • Full Enrollment
+            </div>
+          </div>
+
+          <!-- KPI 2 -->
+          <div class="kpi-card">
+            <div class="kpi-label" id="kpi-inflow-label">TODAY'S INFLOW</div>
+            <div class="kpi-value" style="color: #16a34a;" id="kpi-inflow-value"></div>
+            <div class="kpi-subtitle" id="kpi-inflow-sub">
+              12 payments • Target: ৳10,000
+            </div>
+          </div>
+
+          <!-- KPI 3 -->
+          <div class="kpi-card">
+            <div class="kpi-label" id="kpi-outflow-label">TODAY'S OUTFLOW</div>
+            <div class="kpi-value" style="color: #dc2626;" id="kpi-outflow-value"></div>
+            <div class="kpi-subtitle" id="kpi-outflow-sub">
+              3 vouchers • Supplies & Bills
+            </div>
+          </div>
+
+          <!-- KPI 4 -->
+          <div class="kpi-card">
+            <div class="kpi-label" id="kpi-net-label">NET DAILY BALANCE</div>
+            <div class="kpi-value" style="color: #004ac6;" id="kpi-net-value"></div>
+            <div class="kpi-subtitle" id="kpi-net-sub">
+              +68.4% margin • Auto-reconciled
+            </div>
+          </div>
+        </div>
+
+        <!-- Teacher Summary Widget Card -->
+        <div class="card"
+          style="margin-bottom: 1.5rem; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0;">
+          <div class="card-header" style="padding-bottom: 0.75rem;">
+            <div>
+              <h3 class="card-title" style="display: flex; align-items: center; gap: 0.5rem;">
+                <span class="material-symbols-outlined" style="color: #0284c7;">badge</span>
+                Teacher Summary
+              </h3>
+              <p style="font-size: 0.75rem; color: #64748b;">Current registered teachers and unpaid payable balance</p>
+            </div>
+            <a href="teachers.html" class="btn btn-secondary btn-sm"
+              style="display: flex; align-items: center; gap: 0.35rem;">
+              Manage Teachers
+              <span class="material-symbols-outlined" style="font-size: 1rem;">arrow_forward</span>
+            </a>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; padding-top: 0.5rem;"
+            id="dashTeacherSummaryGrid">
+            <div style="background: white; padding: 0.85rem 1rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+              <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Total Teachers</div>
+              <div style="font-size: 1.35rem; font-weight: 700; color: #0f172a; margin-top: 0.2rem;"
+                id="dashTotalTeachers">0</div>
+            </div>
+            <div style="background: white; padding: 0.85rem 1rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+              <div style="font-size: 0.7rem; color: #dc2626; font-weight: 600; text-transform: uppercase;">Total Teacher Payable</div>
+              <div style="font-size: 1.35rem; font-weight: 700; color: #dc2626; margin-top: 0.2rem;"
+                id="dashTotalPayable">৳0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Middle Section: Chart + Due Students -->
+        <div class="dashboard-middle-grid">
+          <!-- Chart -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Income & Expense Overview</h3>
+                <p style="font-size: 0.75rem; color: #64748b;">Live monthly income, expense, and net balance</p>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.72rem; color: #475569;">
+                  <span
+                    style="display: inline-block; width: 10px; height: 10px; background: #2563eb; border-radius: 2px;"></span>
+                  Revenue
+                  <span
+                    style="display: inline-block; width: 10px; height: 10px; background: #94a3b8; border-radius: 2px;"></span>
+                  Expense
+                  <span
+                    style="display: inline-block; width: 10px; height: 3px; background: #0d9488; border-radius: 1px;"></span>
+                  Net Balance
+                </div>
+                <a href="reports.html" class="btn btn-secondary btn-sm">Export Audit</a>
+              </div>
+            </div>
+
+            <div class="chart-container">
+              <canvas id="overview-chart-canvas"></canvas>
+            </div>
+          </div>
+
+          <!-- Priority Due Students -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <h3 class="card-title">Due Students</h3>
+                  <span class="status-pill due" id="due-students-count-badge" style="font-size: 0.7rem;">0 Due</span>
+                </div>
+                <p style="font-size: 0.72rem; color: #64748b;">All unpaid students for the current billing month</p>
+              </div>
+              <span id="due-students-unpaid-total" style="font-size: 0.75rem; font-weight: 700; color: #dc2626;">UNPAID:
+                ৳0</span>
+            </div>
+
+            <div class="data-table-container due-students-scroll">
+              <table class="data-table due-students-table">
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Class</th>
+                    <th>Cycle</th>
+                    <th>Fee</th>
+                    <th style="text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="due-students-tbody">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+
+            <div
+              style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; font-size: 0.75rem; color: #64748b;">
+              <span id="due-students-showing-label">Showing all due students</span>
+              <a href="monthly-overview.html" style="color: var(--primary); font-weight: 600; text-decoration: none;">
+                View All Due Students &rarr;
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Section: Class Overview & Recent Transactions -->
+        <div class="dashboard-bottom-grid">
+          <!-- Class Overview -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Class Overview & Collection Rates</h3>
+                <p style="font-size: 0.75rem; color: #64748b;">Academic Year recovery efficiency per class</p>
+              </div>
+              <span class="badge-tag" id="dash-class-overview-badge">Class Overview</span>
+            </div>
+
+            <div class="data-table-container class-overview-scroll">
+              <table class="data-table class-overview-table">
+                <thead>
+                  <tr>
+                    <th>Class</th>
+                    <th>Students</th>
+                    <th>Expected</th>
+                    <th>Collected</th>
+                    <th>Due</th>
+                    <th>Recovery Rate</th>
+                  </tr>
+                </thead>
+                <tbody id="class-overview-tbody">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+
+            <div
+              style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; font-size: 0.8rem; font-weight: 600; color: #334155;">
+              <span id="total-projected-summary">Total Projected: ৳ 180,000.00</span>
+              <span style="color: #16a34a;" id="aggregate-efficiency-summary">Aggregate Efficiency: 92.4%</span>
+            </div>
+          </div>
+
+          <!-- Recent Transactions -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Recent Transactions</h3>
+                <p style="font-size: 0.75rem; color: #64748b;">Real-time payment and expense ledger</p>
+              </div>
+              <div style="display: flex; gap: 0.35rem;">
+                <button class="btn btn-secondary btn-sm trx-tab-btn active" data-tab="all">All</button>
+                <button class="btn btn-secondary btn-sm trx-tab-btn" data-tab="income">Income</button>
+                <button class="btn btn-secondary btn-sm trx-tab-btn" data-tab="expense">Expense</button>
+              </div>
+            </div>
+
+            <div id="recent-transactions-container" style="max-height: 280px; overflow-y: auto;">
+              <!-- Populated dynamically -->
+            </div>
+
+            <div
+              style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; font-size: 0.75rem; color: #64748b;">
+              <span>Showing latest recorded entries</span>
+              <a href="payments.html" style="color: var(--primary); font-weight: 600; text-decoration: none;">
+                View All Transactions &rarr;
+              </a>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal: Add Student -->
+  <div id="modal-add-student" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">New Student Admission</h3>
+        <button class="modal-close" onclick="closeModal('modal-add-student')">&times;</button>
+      </div>
+      <form id="form-add-student">
+        <div class="modal-body">
+          <!-- Class Allocation Info Banner -->
+          <div
+            style="background: var(--surface-low); border: 1px solid var(--outline-variant); border-radius: 8px; padding: 0.85rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 0.75rem; color: #64748b; font-weight: 600;">INTELLIGENT ROLL ALLOCATION</div>
+              <div style="font-size: 0.85rem; font-weight: 700; color: #1e293b;" id="next-roll-preview-badge">Next Roll:
+                #509</div>
+            </div>
+            <span class="badge-tag" id="next-roll-fee-badge">Fee: ৳1,000/mo</span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Academic Year</label>
+              <input type="text" id="modal-add-student-ay" class="form-control" value="Academic Year" readonly>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Class Allocation *</label>
+              <select name="class_id" id="student-class-select" class="form-control" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Student Full Name *</label>
+            <input type="text" name="name" class="form-control" placeholder="e.g. Tanvir Islam" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Father's Name</label>
+              <input type="text" name="father_name" class="form-control" placeholder="Guardian father name">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mother's Name</label>
+              <input type="text" name="mother_name" class="form-control" placeholder="Guardian mother name">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Primary Contact Phone *</label>
+              <input type="tel" name="phone" class="form-control" placeholder="e.g. 01712-345678" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Admission Date</label>
+              <input type="date" name="admission_date" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Residential Address</label>
+            <textarea name="address" class="form-control" rows="2" placeholder="House/Street, Area, Dhaka"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-student')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Admit Student</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Record Payment -->
+  <div id="modal-record-payment" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Record Monthly Tuition Fee</h3>
+        <button class="modal-close" onclick="closeModal('modal-record-payment')">&times;</button>
+      </div>
+      <form id="form-record-payment">
+        <input type="hidden" name="student_id" id="dash-pay-student-id">
+        <div class="modal-body">
+          <!-- Step 1: Locate Student by ID and Class -->
+          <div
+            style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1rem;">
+            <div
+              style="font-size: 0.75rem; font-weight: 700; color: #004ac6; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between;">
+              <span>Step 1: Locate Student</span>
+              <span style="font-size: 0.7rem; color: #64748b; text-transform: none;">Type Student ID / Roll</span>
+            </div>
+
+            <div class="form-row" style="margin-bottom: 0.5rem;">
+              <div class="form-group" style="flex: 1;">
+                <label class="form-label" style="font-size: 0.78rem;">Filter by Class (Optional)</label>
+                <select id="dash-pay-filter-class" class="form-control" style="font-size: 0.82rem;">
+                  <option value="">All Classes</option>
+                </select>
+              </div>
+              <div class="form-group" style="flex: 2;">
+                <label class="form-label" style="font-size: 0.78rem;">Student ID or Roll Number *</label>
+                <div style="display: flex; gap: 0.5rem;">
+                  <input type="text" id="dash-pay-student-input" class="form-control"
+                    placeholder="e.g. 301, 1, or name..." autocomplete="off">
+                  <button type="button" id="btn-find-student-dash" class="btn btn-primary btn-sm"
+                    style="padding: 0.4rem 0.85rem; white-space: nowrap;">
+                    <span class="material-symbols-outlined" style="font-size: 1rem;">search</span>
+                    Find
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Student Search Suggestions List -->
+            <div id="dash-pay-student-suggestions"
+              style="display: none; background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; max-height: 180px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-top: 0.4rem;">
+            </div>
+
+            <!-- Verified Student Card -->
+            <div id="dash-pay-verified-student"
+              style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                  <div id="dash-verified-avatar"
+                    style="width: 38px; height: 38px; border-radius: 50%; background: #004ac6; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem;">
+                    ST</div>
+                  <div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                      <span id="dash-verified-name"
+                        style="font-weight: 700; color: #1e293b; font-size: 0.95rem;">Student Name</span>
+                      <span id="dash-verified-class" class="badge-tag" style="font-size: 0.72rem;">Class 6</span>
+                      <span id="dash-verified-roll" class="badge-tag"
+                        style="background: #e0f2fe; color: #0369a1; font-size: 0.72rem;">Roll #301</span>
+                    </div>
+                    <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">
+                      <span id="dash-verified-phone">01700-000000</span> • <span
+                        id="dash-verified-father">Guardian</span> • Monthly Fee: <strong id="dash-verified-fee"
+                        style="color: #004ac6;">৳1,000</strong>
+                    </div>
+                  </div>
+                </div>
+                <button type="button" id="btn-reset-verified-dash" class="btn btn-outline btn-sm"
+                  style="font-size: 0.72rem; padding: 0.25rem 0.5rem;">
+                  Change
+                </button>
+              </div>
+              <div id="dash-verified-status-banner"
+                style="margin-top: 0.5rem; font-size: 0.75rem; padding: 0.35rem 0.5rem; border-radius: 4px; display: none;">
+              </div>
+            </div>
+
+            <!-- Empty Prompt -->
+            <div id="dash-pay-search-prompt"
+              style="font-size: 0.76rem; color: #64748b; margin-top: 0.35rem; display: flex; align-items: center; gap: 0.35rem;">
+              <span class="material-symbols-outlined" style="font-size: 0.9rem; color: #94a3b8;">info</span>
+              Type the student ID or roll number above, then click Find or select from the list.
+            </div>
+          </div>
+
+          <!-- Step 2: Payment Details -->
+          <div id="dash-payment-details-section"
+            style="opacity: 0.45; pointer-events: none; transition: opacity 0.2s ease;">
+            <div
+              style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.65rem;">
+              Step 2: Payment Breakdown
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Billing Month *</label>
+                <select name="month" id="dash-pay-month-select" class="form-control" required>
+                  <option value="January">January</option>
+                  <option value="February">February</option>
+                  <option value="March">March</option>
+                  <option value="April">April</option>
+                  <option value="May">May</option>
+                  <option value="June">June</option>
+                  <option value="July">July</option>
+                  <option value="August">August</option>
+                  <option value="September" selected>September</option>
+                  <option value="October">October</option>
+                  <option value="November">November</option>
+                  <option value="December">December</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Fee Amount (৳) *</label>
+                <input type="number" name="amount" id="dash-pay-amount-input" class="form-control" required min="1"
+                  step="any" value="1000">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Payment Mode</label>
+                <select name="payment_method" class="form-control">
+                  <option value="Cash" selected>Cash</option>
+                  <option value="bKash">bKash</option>
+                  <option value="Nagad">Nagad</option>
+                  <option value="Bank">Bank Deposit</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Payment Date</label>
+                <input type="date" name="payment_date" class="form-control">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Remarks / Note</label>
+              <input type="text" name="note" class="form-control" placeholder="Monthly tuition fee">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-record-payment')">Cancel</button>
+          <button type="submit" id="btn-submit-dash-payment" class="btn btn-primary" disabled>Confirm & Print
+            Voucher</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add Expense -->
+  <div id="modal-add-expense" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Record Institutional Expense</h3>
+        <button class="modal-close" onclick="closeModal('modal-add-expense')">&times;</button>
+      </div>
+      <form id="form-add-expense">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Expense Category *</label>
+              <select name="category_id" id="expense-category-select" class="form-control" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Amount (৳) *</label>
+              <input type="number" step="any" name="amount" class="form-control" placeholder="e.g. 1500" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Expense Description *</label>
+            <input type="text" name="description" class="form-control"
+              placeholder="e.g. Electricity Bill • Sep Meter #4022" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Expense Date</label>
+            <input type="date" name="expense_date" class="form-control">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-expense')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Expense Voucher</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+
+</html>

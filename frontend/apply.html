@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Staff application - Coaching Center Management System</title>
+  <link rel="stylesheet" href="css/fonts.css">
+  <link rel="stylesheet" href="auth.css">
+</head>
+<body class="auth-page">
+  <main class="auth-shell">
+    <section class="auth-card">
+      <div class="auth-brand">
+        <div class="auth-brand-mark"><span class="material-symbols-outlined">school</span></div>
+        <div>
+          <h1>Coaching Center</h1>
+          <p>Management System</p>
+        </div>
+      </div>
+
+      <h2>Apply for Staff access</h2>
+      <p class="auth-intro">Submit your details for review. A Super Admin will approve or reject the application. Approved applicants receive a Supabase invitation by email.</p>
+
+      <form id="application-form" class="auth-form">
+        <label class="auth-label">
+          Full name
+          <input class="auth-input" type="text" name="full_name" autocomplete="name" required>
+        </label>
+        <label class="auth-label">
+          Email address
+          <input class="auth-input" type="email" name="email" autocomplete="email" required>
+        </label>
+        <label class="auth-label">
+          Password
+          <input class="auth-input" type="password" name="password" placeholder="Password (min 8 characters)" minlength="8" required>
+        </label>
+        <label class="auth-label">
+          Notes <span style="font-weight: 500; color: #64748b;">(optional)</span>
+          <textarea class="auth-textarea" name="notes" placeholder="Tell the administrator anything useful about your application."></textarea>
+        </label>
+        <button class="auth-button" type="submit">Submit application</button>
+      </form>
+
+      <p id="application-message" class="auth-message" role="alert"></p>
+      <div class="auth-links">
+        <a href="login.html">Back to sign in</a>
+      </div>
+    </section>
+  </main>
+  <script src="js/auth.js"></script>
+  <script src="apply.js"></script>
+</body>
+</html>

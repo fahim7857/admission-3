@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in - Coaching Center Management System</title>
+  <link rel="stylesheet" href="css/fonts.css">
+  <link rel="stylesheet" href="auth.css">
+</head>
+<body class="auth-page">
+  <main class="auth-shell">
+    <section class="auth-card">
+      <div class="auth-brand">
+        <div class="auth-brand-mark"><span class="material-symbols-outlined">school</span></div>
+        <div>
+          <h1>Coaching Center</h1>
+          <p>Management System</p>
+        </div>
+      </div>
+
+      <h2>Welcome back</h2>
+      <p class="auth-intro">Sign in with your Supabase account to access the center's records and operations.</p>
+
+      <form id="login-form" class="auth-form">
+        <label class="auth-label">
+          Email address
+          <input class="auth-input" type="email" name="email" autocomplete="email" required>
+        </label>
+        <label class="auth-label">
+          Password
+          <input class="auth-input" type="password" name="password" autocomplete="current-password" required>
+        </label>
+        <button class="auth-button" type="submit">Sign in</button>
+      </form>
+
+      <p id="login-message" class="auth-message" role="alert"></p>
+      <div class="auth-links">
+        <a href="apply.html">Apply for Staff access</a>
+      </div>
+    </section>
+  </main>
+ <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/auth.js"></script>
+<script src="login.js"></script>
+</body>
+</html>

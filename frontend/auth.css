@@ -1,0 +1,262 @@
+:root {
+  --auth-ink: #10233f;
+  --auth-muted: #64748b;
+  --auth-blue: #1456d9;
+  --auth-blue-dark: #0d3fa8;
+  --auth-border: #dbe4f0;
+  --auth-bg: #f3f7fc;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body.auth-page {
+  min-height: 100vh;
+  margin: 0;
+  color: var(--auth-ink);
+  background:
+    radial-gradient(circle at 10% 10%, rgba(77, 144, 255, 0.18), transparent 34%),
+    radial-gradient(circle at 90% 85%, rgba(27, 193, 162, 0.12), transparent 30%),
+    var(--auth-bg);
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.auth-shell {
+  width: min(1080px, calc(100% - 2rem));
+  min-height: 100vh;
+  margin: 0 auto;
+  display: grid;
+  place-items: center;
+  padding: 2rem 0;
+}
+
+.auth-card {
+  width: min(100%, 470px);
+  padding: 2.25rem;
+  border: 1px solid rgba(219, 228, 240, 0.9);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 24px 70px rgba(16, 35, 63, 0.12);
+}
+
+.auth-card.wide {
+  width: min(100%, 760px);
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 2rem;
+}
+
+.auth-brand-mark {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--auth-blue), #31a2ff);
+}
+
+.auth-brand h1 {
+  margin: 0;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+}
+
+.auth-brand p {
+  margin: 0.15rem 0 0;
+  color: var(--auth-muted);
+  font-size: 0.75rem;
+}
+
+.auth-card h2 {
+  margin: 0;
+  font-size: 1.65rem;
+  letter-spacing: -0.035em;
+}
+
+.auth-intro {
+  margin: 0.55rem 0 1.7rem;
+  color: var(--auth-muted);
+  line-height: 1.55;
+  font-size: 0.9rem;
+}
+
+.auth-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.auth-label {
+  display: grid;
+  gap: 0.4rem;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.auth-input,
+.auth-textarea {
+  width: 100%;
+  border: 1px solid var(--auth-border);
+  border-radius: 10px;
+  padding: 0.75rem 0.8rem;
+  color: var(--auth-ink);
+  background: #fff;
+  font: inherit;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.auth-input:focus,
+.auth-textarea:focus {
+  border-color: var(--auth-blue);
+  box-shadow: 0 0 0 3px rgba(20, 86, 217, 0.12);
+}
+
+.auth-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.auth-button {
+  border: 0;
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  color: #fff;
+  background: var(--auth-blue);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.auth-button:hover {
+  background: var(--auth-blue-dark);
+}
+
+.auth-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.auth-message {
+  display: none;
+  margin: 1rem 0 0;
+  padding: 0.75rem 0.85rem;
+  border-radius: 9px;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.auth-message.visible {
+  display: block;
+}
+
+.auth-message.error {
+  color: #9f1239;
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+}
+
+.auth-message.success {
+  color: #166534;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.auth-links {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1.25rem;
+  font-size: 0.84rem;
+}
+
+.auth-links a {
+  color: var(--auth-blue);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.auth-links a:hover {
+  text-decoration: underline;
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+  margin-top: 1.5rem;
+  border: 1px solid var(--auth-border);
+  border-radius: 12px;
+}
+
+.admin-table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 0.85rem 0.9rem;
+  border-bottom: 1px solid var(--auth-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.admin-table th {
+  color: #475569;
+  background: #f8fafc;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.admin-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.admin-action {
+  border: 1px solid var(--auth-border);
+  border-radius: 8px;
+  padding: 0.45rem 0.65rem;
+  background: #fff;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-action.approve {
+  color: #166534;
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.admin-action.reject {
+  color: #9f1239;
+  border-color: #fecdd3;
+  background: #fff1f2;
+}
+
+@media (max-width: 560px) {
+  .auth-shell {
+    width: min(100% - 1rem, 470px);
+    padding: 0.5rem 0;
+  }
+
+  .auth-card {
+    padding: 1.35rem;
+    border-radius: 15px;
+  }
+}

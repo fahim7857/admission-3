@@ -1,0 +1,90 @@
+/* Expenses Page Styles */
+.expenses-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .expenses-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .expenses-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.category-chips-bar {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.category-chip {
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--outline-variant);
+  background: var(--surface-lowest);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.category-chip:hover,
+.category-chip.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* Match layout structure of other pages (e.g. students.html / payments.html) */
+.expenses-page-table th:nth-child(1),
+.expenses-page-table td:nth-child(1) {
+  width: 11%;
+}
+
+.expenses-page-table th:nth-child(2),
+.expenses-page-table td:nth-child(2) {
+  width: 14%;
+  white-space: nowrap;
+}
+
+.expenses-page-table th:nth-child(3),
+.expenses-page-table td:nth-child(3) {
+  width: 16%;
+  white-space: nowrap;
+}
+
+.expenses-page-table th:nth-child(4),
+.expenses-page-table td:nth-child(4) {
+  width: 26%;
+}
+
+.expenses-page-table th:nth-child(5),
+.expenses-page-table td:nth-child(5) {
+  width: 11%;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+/* Actions column: widened from 11% to 22% so the Receipt + Delete buttons
+   fit on one line on normal screens. white-space: nowrap removed so that,
+   if space is ever still tight (narrow window / small screen), the buttons
+   wrap onto a second line instead of overflowing off-screen and disappearing. */
+.expenses-page-table th:nth-child(6),
+.expenses-page-table td:nth-child(6) {
+  width: 22%;
+  text-align: right;
+}
+
+.expense-row-item:hover {
+  background: #f8fafc;
+}
