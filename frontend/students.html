@@ -11,6 +11,9 @@
 </head>
 
 <body>
+  <!-- Sidebar backdrop for mobile -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
   <div class="app-container">
     <!-- Sidebar -->
     <aside class="app-sidebar">
@@ -74,9 +77,14 @@
     <div class="app-main">
       <!-- Topbar -->
       <header class="app-topbar">
-        <div class="topbar-search">
-          <span class="material-symbols-outlined" style="font-size: 1.1rem; color: #64748b;">search</span>
-          <input type="text" placeholder="Search student, roll, payment...">
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 0;">
+          <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open navigation menu" title="Open menu">
+            <span class="material-symbols-outlined" style="font-size: 1.3rem;">menu</span>
+          </button>
+          <div class="topbar-search">
+            <span class="material-symbols-outlined" style="font-size: 1.1rem; color: #64748b;">search</span>
+            <input type="text" placeholder="Search student, roll, payment...">
+          </div>
         </div>
 
         <div class="topbar-actions">
@@ -146,15 +154,15 @@
           </div>
 
           <div class="kpi-card">
-            <div class="kpi-label">SEP FEE REALIZED</div>
+            <div class="kpi-label" id="stat-fee-realized-label">FEE REALIZED</div>
             <div class="kpi-value" style="color: #16a34a;" id="stat-realized-fee">৳ 1,38,400.00</div>
-            <div class="kpi-subtitle">Tuition collections cleared</div>
+            <div class="kpi-subtitle" id="stat-realized-sub">Tuition collections cleared</div>
           </div>
 
           <div class="kpi-card">
-            <div class="kpi-label">OUTSTANDING DUES</div>
+            <div class="kpi-label" id="stat-outstanding-dues-label">OUTSTANDING DUES</div>
             <div class="kpi-value" style="color: #dc2626;" id="stat-dues-fee">৳ 41,200.00</div>
-            <div class="kpi-subtitle">Pending September payments</div>
+            <div class="kpi-subtitle" id="stat-dues-sub">Pending payments</div>
           </div>
         </div>
 
@@ -176,8 +184,8 @@
             <select id="filter-payment-select" class="form-control"
               style="width: auto; min-width: 130px; font-size: 0.82rem; padding: 0.45rem 0.75rem;">
               <option value="all">Payment: All</option>
-              <option value="Paid">Paid (Sep)</option>
-              <option value="Due">Due (Sep)</option>
+              <option value="Paid" id="filter-option-paid">Paid</option>
+              <option value="Due" id="filter-option-due">Due</option>
             </select>
           </div>
         </div>
@@ -193,7 +201,7 @@
                 <th>Class</th>
                 <th>Monthly Fee</th>
                 <th>Admission Date</th>
-                <th>Sep Fee</th>
+                <th id="table-header-fee-month">Fee Status</th>
                 <th style="text-align: right;">Actions</th>
               </tr>
             </thead>
@@ -369,8 +377,8 @@
                 <option value="June">June</option>
                 <option value="July">July</option>
                 <option value="August">August</option>
-                <option value="September" selected>September</option>
-                <option value="October">October</option>
+                <option value="September">September</option>
+                <option value="October" selected>October</option>
                 <option value="November">November</option>
                 <option value="December">December</option>
               </select>
@@ -516,8 +524,8 @@
                   <option value="June">June</option>
                   <option value="July">July</option>
                   <option value="August">August</option>
-                  <option value="September" selected>September</option>
-                  <option value="October">October</option>
+                  <option value="September">September</option>
+                  <option value="October" selected>October</option>
                   <option value="November">November</option>
                   <option value="December">December</option>
                 </select>
@@ -567,6 +575,19 @@
   <script src="js/auth.js"></script>
   <script src="js/api.js"></script>
   <script src="students.js"></script>
+  <script>
+    (function () {
+      var menuBtn = document.getElementById('mobileMenuBtn');
+      var backdrop = document.getElementById('sidebar-backdrop');
+      var sidebar = document.querySelector('.app-sidebar');
+      if (!menuBtn || !sidebar) return;
+      function openSidebar() { sidebar.classList.add('open'); if (backdrop) backdrop.classList.add('active'); }
+      function closeSidebar() { sidebar.classList.remove('open'); if (backdrop) backdrop.classList.remove('active'); }
+      menuBtn.addEventListener('click', function () { sidebar.classList.contains('open') ? closeSidebar() : openSidebar(); });
+      if (backdrop) backdrop.addEventListener('click', closeSidebar);
+      sidebar.querySelectorAll('.nav-link').forEach(function (l) { l.addEventListener('click', function () { if (window.innerWidth <= 1024) closeSidebar(); }); });
+    })();
+  </script>
 </body>
 
 </html>

@@ -174,6 +174,9 @@
       align-items: center;
       gap: 0.25rem;
       transition: background 0.15s;
+      white-space: nowrap;
+      overflow: visible;
+      flex-shrink: 0;
     }
 
     .btn-approve:hover:not(:disabled) {
@@ -193,6 +196,9 @@
       align-items: center;
       gap: 0.25rem;
       transition: all 0.15s;
+      white-space: nowrap;
+      overflow: visible;
+      flex-shrink: 0;
     }
 
     .btn-reject:hover:not(:disabled) {
@@ -206,10 +212,30 @@
       opacity: 0.55;
       cursor: not-allowed;
     }
+
+    /* Fix: table action column should never clip button content */
+    .data-table td:last-child {
+      overflow: visible !important;
+    }
+
+    /* Responsive: table scroll on small screens */
+    @media (max-width: 768px) {
+      .admin-kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (max-width: 480px) {
+      .admin-kpi-grid {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 
 <body>
+  <!-- Sidebar backdrop for mobile -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
   <div class="app-container" id="admin-app">
     <!-- Sidebar -->
     <aside class="app-sidebar">
@@ -277,9 +303,15 @@
     <div class="app-main">
       <!-- Topbar -->
       <header class="app-topbar">
-        <div class="topbar-search">
-          <span class="material-symbols-outlined" style="font-size: 1.1rem; color: #64748b;">search</span>
-          <input type="text" id="adminSearchInput" placeholder="Filter applications by name or email...">
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 0;">
+          <!-- Mobile hamburger menu button -->
+          <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open navigation menu" title="Open menu">
+            <span class="material-symbols-outlined" style="font-size: 1.3rem;">menu</span>
+          </button>
+          <div class="topbar-search">
+            <span class="material-symbols-outlined" style="font-size: 1.1rem; color: #64748b;">search</span>
+            <input type="text" id="adminSearchInput" placeholder="Filter applications by name or email...">
+          </div>
         </div>
 
         <div class="topbar-actions">
@@ -457,6 +489,34 @@
     }
   </style>
 
+  <!-- Mobile Sidebar Toggle -->
+  <script>
+    (function () {
+      var menuBtn = document.getElementById('mobileMenuBtn');
+      var backdrop = document.getElementById('sidebar-backdrop');
+      var sidebar = document.querySelector('.app-sidebar');
+      if (!menuBtn || !sidebar) return;
+      function openSidebar() {
+        sidebar.classList.add('open');
+        if (backdrop) backdrop.classList.add('active');
+      }
+      function closeSidebar() {
+        sidebar.classList.remove('open');
+        if (backdrop) backdrop.classList.remove('active');
+      }
+      menuBtn.addEventListener('click', function () {
+        if (sidebar.classList.contains('open')) { closeSidebar(); } else { openSidebar(); }
+      });
+      if (backdrop) { backdrop.addEventListener('click', closeSidebar); }
+      // Close sidebar on nav link click (mobile)
+      sidebar.querySelectorAll('.nav-link').forEach(function (link) {
+        link.addEventListener('click', function () {
+          if (window.innerWidth <= 1024) { closeSidebar(); }
+        });
+      });
+    })();
+  </script>
+
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/auth.js"></script>
@@ -609,7 +669,7 @@
             actions = `
               <div class="action-btn-group" style="justify-content: flex-end;">
                 <button class="btn-approve" data-action="approve" data-id="${id}" data-name="${fullName}">
-                  <span class="material-symbols-outlined" style="font-size: 0.6rem;">check</span>
+                  <span class="material-symbols-outlined" style="font-size: 0.85rem; vertical-align: middle;">check</span>
                   Approve
                 </button>
                 <button class="btn-reject" data-action="reject" data-id="${id}" data-name="${fullName}">

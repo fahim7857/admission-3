@@ -13,6 +13,9 @@
 </head>
 
 <body>
+  <!-- Sidebar backdrop for mobile -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
   <div class="app-container">
     <!-- Sidebar -->
     <aside class="app-sidebar">
@@ -76,9 +79,14 @@
     <div class="app-main">
       <!-- Topbar -->
       <header class="app-topbar">
-        <div class="topbar-search">
-          <span class="material-symbols-outlined" style="font-size: 1.1rem; color: #64748b;">search</span>
-          <input type="text" placeholder="Search student, roll, payment...">
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 0;">
+          <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open navigation menu" title="Open menu">
+            <span class="material-symbols-outlined" style="font-size: 1.3rem;">menu</span>
+          </button>
+          <div class="topbar-search">
+            <span class="material-symbols-outlined" style="font-size: 1.1rem; color: #64748b;">search</span>
+            <input type="text" placeholder="Search student, roll, payment...">
+          </div>
         </div>
 
         <div class="topbar-actions">
@@ -384,6 +392,19 @@
   <script src="js/auth.js"></script>
   <script src="js/api.js"></script>
   <script src="payments.js"></script>
+  <script>
+    (function () {
+      var menuBtn = document.getElementById('mobileMenuBtn');
+      var backdrop = document.getElementById('sidebar-backdrop');
+      var sidebar = document.querySelector('.app-sidebar');
+      if (!menuBtn || !sidebar) return;
+      function openSidebar() { sidebar.classList.add('open'); if (backdrop) backdrop.classList.add('active'); }
+      function closeSidebar() { sidebar.classList.remove('open'); if (backdrop) backdrop.classList.remove('active'); }
+      menuBtn.addEventListener('click', function () { sidebar.classList.contains('open') ? closeSidebar() : openSidebar(); });
+      if (backdrop) backdrop.addEventListener('click', closeSidebar);
+      sidebar.querySelectorAll('.nav-link').forEach(function (l) { l.addEventListener('click', function () { if (window.innerWidth <= 1024) closeSidebar(); }); });
+    })();
+  </script>
 </body>
 
 </html>

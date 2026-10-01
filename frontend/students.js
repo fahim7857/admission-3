@@ -5,6 +5,23 @@ let allClasses = [];
 document.addEventListener('DOMContentLoaded', async () => {
   await loadClasses();
   readUrlParams();
+
+  // Update dynamic month labels in the UI
+  const curMonthName = getCurrentMonthName();
+  const curShortMonth = curMonthName.substring(0, 3).toUpperCase();
+  const realizedLabel = document.getElementById('stat-fee-realized-label');
+  if (realizedLabel) realizedLabel.textContent = `${curShortMonth} FEE REALIZED`;
+  const duesLabel = document.getElementById('stat-outstanding-dues-label');
+  if (duesLabel) duesLabel.textContent = `OUTSTANDING DUES (${curMonthName})`;
+  const duesSub = document.getElementById('stat-dues-sub');
+  if (duesSub) duesSub.textContent = `Pending ${curMonthName} payments`;
+  const paidOpt = document.getElementById('filter-option-paid');
+  if (paidOpt) paidOpt.textContent = `Paid (${curShortMonth})`;
+  const dueOpt = document.getElementById('filter-option-due');
+  if (dueOpt) dueOpt.textContent = `Due (${curShortMonth})`;
+  const tableHeader = document.getElementById('table-header-fee-month');
+  if (tableHeader) tableHeader.textContent = `${curShortMonth} Fee`;
+
   await loadStudents();
   setupEventListeners();
 
@@ -76,7 +93,7 @@ async function loadStudents() {
       search,
       class_id: classId,
       payment_status: paymentStatus,
-      month: 'September'
+      month: getCurrentMonthName()
     });
 
     allStudents = res.data;
@@ -307,7 +324,12 @@ function quickPayStudent(id, name, roll, fee) {
   form.student_id.value = id;
   form.student_display.value = `#${roll} - ${name}`;
   form.amount.value = fee;
-  form.month.value = 'September';
+  const monthSelect = form.querySelector('select[name="month"]');
+  if (monthSelect) {
+    monthSelect.value = getCurrentMonthName();
+  } else {
+    form.month.value = getCurrentMonthName();
+  }
   openModal('modal-collect-fee-dialog');
 }
 
@@ -442,7 +464,7 @@ async function lookupStuStudents(autoSelectIfSingle = false) {
   if (!input) return;
   const query = input.value.trim();
   const classId = filterClass ? filterClass.value : '';
-  const month = monthSelect ? monthSelect.value : 'September';
+  const month = monthSelect ? monthSelect.value : getCurrentMonthName();
 
   if (!query && !classId) {
     if (suggestionsBox) suggestionsBox.style.display = 'none';
@@ -562,7 +584,11 @@ function selectStuStudentForPayment(student) {
   if (btnSubmit) btnSubmit.removeAttribute('disabled');
 
   const monthSelect = document.getElementById('stu-pay-month-select');
-  updateStuPaymentStatusBanner(student, monthSelect ? monthSelect.value : 'September');
+  if (monthSelect && !monthSelect.dataset.initialized) {
+    monthSelect.value = getCurrentMonthName();
+    monthSelect.dataset.initialized = '1';
+  }
+  updateStuPaymentStatusBanner(student, monthSelect ? monthSelect.value : getCurrentMonthName());
 }
 
 function resetStuPaymentModal() {
