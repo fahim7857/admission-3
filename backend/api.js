@@ -44,6 +44,18 @@ apiRouter.post('/staff-applications', async (req, res) => {
   }
 
   try {
+    // Idempotency guard: never create a second pending application for the same email.
+    const existing = await adminSupabaseRequest(
+      `/rest/v1/staff_applications?select=id&email=eq.${encodeURIComponent(email)}&status=eq.pending&limit=1`,
+      { method: 'GET' }
+    );
+    if (Array.isArray(existing) && existing.length > 0) {
+      return res.status(201).json({
+        success: true,
+        message: 'Staff application submitted for review.'
+      });
+    }
+
     const payload = {
       full_name: fullName,
       email,
@@ -52,22 +64,11 @@ apiRouter.post('/staff-applications', async (req, res) => {
     };
     if (userId) payload.user_id = userId;
 
+    // Single INSERT. There is no fallback INSERT anywhere in this handler.
     await adminSupabaseRequest('/rest/v1/staff_applications', {
       method: 'POST',
       headers: { Prefer: 'return=minimal' },
       body: JSON.stringify(payload)
-    }).catch(() => {
-      // Fallback to public request without user_id if needed
-      return publicSupabaseRequest('/rest/v1/staff_applications', {
-        method: 'POST',
-        headers: { Prefer: 'return=minimal' },
-        body: JSON.stringify({
-          full_name: fullName,
-          email,
-          notes,
-          status: 'pending'
-        })
-      });
     });
 
     return res.status(201).json({
@@ -2525,19 +2526,21 @@ apiRouter.post('/database/restore', requireSuperAdmin, upload.single('database_f
     return res.status(500).json({ success: false, error: 'Database restore failed: ' + error.message });
   }
 });
-try {
-  const dbPath = getDbPath();
-  if (fs.existsSync(dbPath)) {
-    const activeYear = getActiveAcademicYear();
-    res.download(dbPath, `coaching-backup-${activeYear.year}-${new Date().toISOString().split('T')[0]}.sqlite`);
-  } else {
-    res.status(404).json({ success: false, error: 'Database file not found' });
-  }
-} catch (error) {
-  res.status(500).json({ success: false, error: error.message });
-}
-;
 
+// Download database backup
+apiRouter.get('/database/backup', async (req, res) => {
+  try {
+    const dbPath = getDbPath();
+    if (fs.existsSync(dbPath)) {
+      const activeYear = getActiveAcademicYear();
+      res.download(dbPath, `coaching-backup-${activeYear.year}-${new Date().toISOString().split('T')[0]}.sqlite`);
+    } else {
+      res.status(404).json({ success: false, error: 'Database file not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 apiRouter.get('/settings/system', requireSuperAdmin, (req, res) => {
   try {
     const dbPath = getDbPath();
