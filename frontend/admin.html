@@ -224,6 +224,7 @@
         grid-template-columns: repeat(2, 1fr);
       }
     }
+
     @media (max-width: 480px) {
       .admin-kpi-grid {
         grid-template-columns: 1fr;
@@ -265,6 +266,10 @@
         <a href="teachers.html" class="nav-link">
           <span class="material-symbols-outlined">badge</span>
           Teachers
+        </a>
+        <a href="staff.html" class="nav-link">
+          <span class="material-symbols-outlined">assignment_ind</span>
+          Staff
         </a>
         <a href="monthly-overview.html" class="nav-link">
           <span class="material-symbols-outlined">calendar_month</span>
@@ -433,6 +438,60 @@
             All
             <span class="badge-count" id="count-all">0</span>
           </button>
+          <button type="button" class="admin-tab-btn" data-status="staff_salary" id="staffSalaryTabBtn"
+            style="background: #e0f2fe; color: #0284c7;">
+            <span class="material-symbols-outlined" style="font-size: 1.1rem;">badge</span>
+            Staff Salary & Advance
+          </button>
+        </div>
+
+        <!-- Staff Salary & Advance Section (Hidden by default) -->
+        <div id="staffSalarySection" style="display: none; margin-bottom: 2rem;">
+          <div class="card"
+            style="padding: 1.25rem; border: 1px solid var(--outline-variant); margin-bottom: 1.25rem; background: #f8fafc;">
+            <div
+              style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+              <div>
+                <h3 style="font-size: 1rem; font-weight: 700; color: #0f172a;">Staff Members & Fixed Salary</h3>
+                <p style="font-size: 0.8rem; color: #64748b; margin-top: 0.2rem;">Manage staff members, record daily
+                  salary/advances, and print daily advance statements.</p>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <button class="btn btn-secondary btn-sm" id="openStaffAdvanceStatementBtn"
+                  style="background: #f0fdf4; color: #16a34a; border-color: #bbf7d0;">
+                  <span class="material-symbols-outlined" style="font-size: 1.1rem;">print</span>
+                  Daily Advance Statement
+                </button>
+                <button class="btn btn-primary btn-sm" id="openAddStaffModalBtn" style="background: #0284c7;">
+                  <span class="material-symbols-outlined" style="font-size: 1.1rem;">person_add</span>
+                  Add Staff Member
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="padding: 0; overflow: hidden; border: 1px solid var(--outline-variant);">
+            <div style="overflow-x: auto;">
+              <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                  <tr
+                    style="background: #f1f5f9; text-align: left; font-size: 0.78rem; color: #475569; text-transform: uppercase;">
+                    <th style="padding: 0.75rem 1rem;">Staff Name</th>
+                    <th style="padding: 0.75rem 1rem;">Phone</th>
+                    <th style="padding: 0.75rem 1rem;">Fixed Salary</th>
+                    <th style="padding: 0.75rem 1rem;">Total Disbursed</th>
+                    <th style="padding: 0.75rem 1rem; text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="staffTableBody">
+                  <tr>
+                    <td colspan="5" style="text-align: center; padding: 2rem; color: #64748b;">Loading staff members...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
         <!-- Table Card -->
@@ -519,6 +578,157 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Add Staff Modal -->
+  <div id="staffModal" class="modal-overlay">
+    <div class="modal-dialog" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="staffModalTitle">Add Staff Member</h3>
+        <button type="button" class="modal-close" id="closeStaffModalBtn" aria-label="Close modal">&times;</button>
+      </div>
+      <form id="staffForm">
+        <div class="modal-body" style="gap: 1rem;">
+          <div id="staffFormError"
+            style="display: none; padding: 0.5rem 0.75rem; background: #ffeeec; color: #b91c1c; border-radius: 6px; font-size: 0.8rem;">
+          </div>
+          <input type="hidden" id="staffIdInput">
+
+          <div class="form-group">
+            <label class="form-label" for="staffNameInput">Staff Name *</label>
+            <input type="text" id="staffNameInput" class="form-control" placeholder="e.g. Md. Rafiqul Islam" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="staffPhoneInput">Phone Number</label>
+            <input type="text" id="staffPhoneInput" class="form-control" placeholder="e.g. 01711-xxxxxx">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="staffSalaryInput">Fixed Monthly Salary (৳) *</label>
+            <input type="number" id="staffSalaryInput" class="form-control" placeholder="e.g. 10000" min="0" step="any"
+              required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancelStaffModalBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="background: #0284c7;">Save Staff</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Staff Payment / Advance Modal -->
+  <div id="staffPayModal" class="modal-overlay">
+    <div class="modal-dialog" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="staffPayModalTitle">Record Staff Salary / Advance</h3>
+        <button type="button" class="modal-close" id="closeStaffPayModalBtn" aria-label="Close modal">&times;</button>
+      </div>
+      <form id="staffPayForm">
+        <div class="modal-body" style="gap: 1rem;">
+          <div id="staffPayFormError"
+            style="display: none; padding: 0.5rem 0.75rem; background: #ffeeec; color: #b91c1c; border-radius: 6px; font-size: 0.8rem;">
+          </div>
+          <input type="hidden" id="staffPayIdInput">
+
+          <div style="background: #f8fafc; padding: 0.75rem; border-radius: 6px; font-size: 0.85rem; color: #334155;">
+            <div>Staff: <strong id="payStaffNameLabel">—</strong></div>
+            <div style="margin-top: 0.2rem;">Fixed Salary: <strong style="color: #0284c7;"
+                id="payStaffSalaryLabel">৳0</strong></div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="staffPayAmountInput">Payment / Advance Amount (৳) *</label>
+            <input type="number" id="staffPayAmountInput" class="form-control" placeholder="e.g. 3000" min="1"
+              step="any" required>
+            <small style="color: #64748b; font-size: 0.75rem; margin-top: 0.2rem; display: block;">Any amount can be
+              disbursed on any day.</small>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="staffPayDateInput">Payment Date *</label>
+            <input type="date" id="staffPayDateInput" class="form-control" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="staffPayNoteInput">Note / Description</label>
+            <input type="text" id="staffPayNoteInput" class="form-control" placeholder="e.g. Salary advance received">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancelStaffPayBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="background: #16a34a;">Record Payment / Advance</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Daily Staff Advance Statement Modal -->
+  <div id="staffAdvanceStatementModal" class="modal-overlay">
+    <div class="modal-dialog" style="max-width: 700px;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="display: flex; align-items: center; gap: 0.4rem;">
+          <span class="material-symbols-outlined" style="color: #16a34a;">print</span>
+          Daily Staff Advance & Payment Statement
+        </h3>
+        <button type="button" class="modal-close" id="closeStaffAdvanceStatementModalBtn"
+          aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body" style="gap: 1rem;">
+        <div
+          style="display: flex; gap: 0.75rem; align-items: center; background: #f8fafc; padding: 0.75rem; border-radius: 8px;">
+          <label style="font-size: 0.82rem; font-weight: 600; color: #334155;">Select Date:</label>
+          <input type="date" id="staffAdvanceStatementDateInput" class="form-control" style="width: auto;"
+            onchange="fetchAndRenderStaffAdvanceStatement()">
+        </div>
+
+        <div id="staffAdvanceStatementPrintable"
+          style="background: white; padding: 1.25rem; border: 1px solid #e2e8f0; border-radius: 8px;">
+          <div style="text-align: center; margin-bottom: 1rem;">
+            <h2 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0;">COACHING CENTER MANAGEMENT
+              SYSTEM</h2>
+            <div style="font-size: 0.85rem; font-weight: 700; color: #16a34a; margin-top: 0.2rem;">DAILY STAFF ADVANCE &
+              PAYMENT STATEMENT</div>
+            <div style="font-size: 0.78rem; color: #64748b; margin-top: 0.15rem;" id="staffStatementDateDisplay">Date: —
+            </div>
+          </div>
+
+          <table class="data-table" style="font-size: 0.8rem; width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
+                <th style="padding: 8px; text-align: left;">Staff Name</th>
+                <th style="padding: 8px; text-align: left;">Phone</th>
+                <th style="padding: 8px; text-align: right;">Fixed Salary</th>
+                <th style="padding: 8px; text-align: left;">Description</th>
+                <th style="padding: 8px; text-align: right;">Paid / Advance (৳)</th>
+              </tr>
+            </thead>
+            <tbody id="staffAdvanceStatementTableBody">
+              <tr>
+                <td colspan="5" style="text-align: center; padding: 1.5rem; color: #64748b;">Loading statement data...
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr style="border-top: 2px solid #cbd5e1; font-weight: 700; background: #f8fafc;">
+                <td colspan="4" style="padding: 10px; text-align: right;">Total Staff Disbursed Today:</td>
+                <td style="padding: 10px; text-align: right; color: #16a34a; font-size: 1rem;"
+                  id="staffAdvanceStatementTotalAmount">৳0</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between;">
+        <button type="button" class="btn btn-secondary btn-sm" id="closeStaffAdvanceStatementBtn">Close</button>
+        <button type="button" class="btn btn-primary btn-sm"
+          onclick="printVoucherContent('staffAdvanceStatementPrintable', 'Staff Advance Statement')">
+          <span class="material-symbols-outlined" style="font-size: 1rem;">print</span>
+          Print Statement
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/auth.js"></script>
   <script src="js/api.js"></script>
 
@@ -775,9 +985,258 @@
           tabs.forEach(t => t.classList.remove('active'));
           tab.classList.add('active');
           currentFilterStatus = tab.dataset.status;
-          renderApplicationsTable();
+
+          const staffSection = document.getElementById('staffSalarySection');
+          const tableCard = document.querySelector('.card:has(#applications-table-body)');
+          const statusTabsContainer = document.getElementById('statusTabs');
+
+          if (currentFilterStatus === 'staff_salary') {
+            if (staffSection) staffSection.style.display = 'block';
+            if (tableCard) tableCard.style.display = 'none';
+            if (statusTabsContainer) {
+              // Hide info text if any
+              const info = document.getElementById('tableStatusInfo');
+              if (info) info.style.display = 'none';
+            }
+            loadStaffList();
+          } else {
+            if (staffSection) staffSection.style.display = 'none';
+            if (tableCard) tableCard.style.display = 'block';
+            renderApplicationsTable();
+          }
         });
       });
+
+      // Staff Management & Advance Logic
+      let staffList = [];
+
+      async function loadStaffList() {
+        const tbody = document.getElementById('staffTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #64748b;">Loading staff members...</td></tr>`;
+
+        try {
+          const res = await api.get('/staff');
+          staffList = res.staff || [];
+
+          if (staffList.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #64748b;">No staff members registered yet. Click "Add Staff Member" above.</td></tr>`;
+            return;
+          }
+
+          tbody.innerHTML = staffList.map(st => `
+            <tr style="border-bottom: 1px solid var(--outline-variant);">
+              <td style="padding: 0.85rem 1rem;"><strong style="color: #0f172a;">${escapeHtml(st.name)}</strong></td>
+              <td style="padding: 0.85rem 1rem; color: #475569;">${escapeHtml(st.phone || 'N/A')}</td>
+              <td style="padding: 0.85rem 1rem; font-weight: 700; color: #0284c7;">৳${(st.fixed_salary || 0).toLocaleString()}</td>
+              <td style="padding: 0.85rem 1rem; font-weight: 700; color: #16a34a;">৳${(st.total_paid || 0).toLocaleString()}</td>
+              <td style="padding: 0.85rem 1rem; text-align: right;">
+                <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                  <button class="btn btn-sm btn-primary pay-staff-btn" data-id="${st.id}" style="background: #16a34a; font-size: 0.75rem; padding: 0.25rem 0.6rem;">Pay / Advance</button>
+                  <button class="btn btn-sm btn-secondary edit-staff-btn" data-id="${st.id}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">Edit</button>
+                  <button class="btn btn-sm btn-secondary delete-staff-btn" data-id="${st.id}" style="color: #dc2626; border-color: #fecaca; font-size: 0.75rem; padding: 0.25rem 0.5rem;">Delete</button>
+                </div>
+              </td>
+            </tr>
+          `).join('');
+
+          tbody.querySelectorAll('.pay-staff-btn').forEach(btn => {
+            btn.addEventListener('click', () => openStaffPayModal(parseInt(btn.dataset.id, 10)));
+          });
+          tbody.querySelectorAll('.edit-staff-btn').forEach(btn => {
+            btn.addEventListener('click', () => openStaffModal(parseInt(btn.dataset.id, 10)));
+          });
+          tbody.querySelectorAll('.delete-staff-btn').forEach(btn => {
+            btn.addEventListener('click', () => handleDeleteStaff(parseInt(btn.dataset.id, 10)));
+          });
+        } catch (err) {
+          console.error('Failed to load staff:', err);
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #dc2626;">Error: ${escapeHtml(err.message)}</td></tr>`;
+        }
+      }
+
+      // Staff Modals & Actions
+      const staffModal = document.getElementById('staffModal');
+      const staffPayModal = document.getElementById('staffPayModal');
+      const staffAdvanceStatementModal = document.getElementById('staffAdvanceStatementModal');
+
+      document.getElementById('openAddStaffModalBtn')?.addEventListener('click', () => {
+        clearFormError('staffFormError');
+        document.getElementById('staffIdInput').value = '';
+        document.getElementById('staffNameInput').value = '';
+        document.getElementById('staffPhoneInput').value = '';
+        document.getElementById('staffSalaryInput').value = '';
+        document.getElementById('staffModalTitle').textContent = 'Add Staff Member';
+        showModal('staffModal');
+      });
+
+      document.getElementById('closeStaffModalBtn')?.addEventListener('click', () => hideModal('staffModal'));
+      document.getElementById('cancelStaffModalBtn')?.addEventListener('click', () => hideModal('staffModal'));
+
+      document.getElementById('staffForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearFormError('staffFormError');
+        const id = document.getElementById('staffIdInput').value;
+        const name = document.getElementById('staffNameInput').value.trim();
+        const phone = document.getElementById('staffPhoneInput').value.trim();
+        const fixed_salary = parseFloat(document.getElementById('staffSalaryInput').value);
+
+        if (!name) {
+          showFormError('staffFormError', 'Staff name is required');
+          return;
+        }
+        if (isNaN(fixed_salary) || fixed_salary < 0) {
+          showFormError('staffFormError', 'Valid fixed salary is required');
+          return;
+        }
+
+        try {
+          let res;
+          if (id) {
+            res = await api.put(`/staff/${id}`, { name, phone, fixed_salary });
+          } else {
+            res = await api.post('/staff', { name, phone, fixed_salary });
+          }
+          if (res && res.success) {
+            showToast(res.message, 'success');
+            hideModal('staffModal');
+            loadStaffList();
+          } else {
+            showFormError('staffFormError', res?.error || 'Failed to save staff');
+          }
+        } catch (err) {
+          showFormError('staffFormError', err.message || 'Server error');
+        }
+      });
+
+      function openStaffModal(id) {
+        const st = staffList.find(x => x.id === id);
+        if (!st) return;
+        clearFormError('staffFormError');
+        document.getElementById('staffIdInput').value = st.id;
+        document.getElementById('staffNameInput').value = st.name;
+        document.getElementById('staffPhoneInput').value = st.phone || '';
+        document.getElementById('staffSalaryInput').value = st.fixed_salary || '';
+        document.getElementById('staffModalTitle').textContent = 'Edit Staff Member';
+        showModal('staffModal');
+      }
+
+      async function handleDeleteStaff(id) {
+        const st = staffList.find(x => x.id === id);
+        if (!st) return;
+        if (!confirm(`Are you sure you want to delete staff "${st.name}"?`)) return;
+
+        try {
+          const res = await api.delete(`/staff/${id}`);
+          if (res && res.success) {
+            showToast(res.message, 'success');
+            loadStaffList();
+          } else {
+            showToast(res?.error || 'Failed to delete', 'error');
+          }
+        } catch (err) {
+          showToast(err.message || 'Server error', 'error');
+        }
+      }
+
+      function openStaffPayModal(id) {
+        const st = staffList.find(x => x.id === id);
+        if (!st) return;
+        clearFormError('staffPayFormError');
+        document.getElementById('staffPayIdInput').value = st.id;
+        document.getElementById('payStaffNameLabel').textContent = st.name;
+        document.getElementById('payStaffSalaryLabel').textContent = `৳${(st.fixed_salary || 0).toLocaleString()}`;
+        document.getElementById('staffPayAmountInput').value = st.fixed_salary || '';
+        document.getElementById('staffPayDateInput').value = (typeof getTodayDhakaDate === 'function') ? getTodayDhakaDate() : new Date().toLocaleDateString('en-CA');
+        document.getElementById('staffPayNoteInput').value = `Salary / Advance paid to ${st.name}`;
+        showModal('staffPayModal');
+      }
+
+      document.getElementById('closeStaffPayModalBtn')?.addEventListener('click', () => hideModal('staffPayModal'));
+      document.getElementById('cancelStaffPayBtn')?.addEventListener('click', () => hideModal('staffPayModal'));
+
+      document.getElementById('staffPayForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearFormError('staffPayFormError');
+        const id = document.getElementById('staffPayIdInput').value;
+        const amount = parseFloat(document.getElementById('staffPayAmountInput').value);
+        const payment_date = document.getElementById('staffPayDateInput').value;
+        const note = document.getElementById('staffPayNoteInput').value.trim();
+
+        if (isNaN(amount) || amount <= 0) {
+          showFormError('staffPayFormError', 'Valid payment amount is required');
+          return;
+        }
+
+        try {
+          const res = await api.post(`/staff/${id}/pay`, { amount, payment_date, note });
+          if (res && res.success) {
+            showToast(res.message, 'success');
+            hideModal('staffPayModal');
+            loadStaffList();
+          } else {
+            showFormError('staffPayFormError', res?.error || 'Failed to record payment');
+          }
+        } catch (err) {
+          showFormError('staffPayFormError', err.message || 'Server error');
+        }
+      });
+
+      // Daily Staff Advance Statement
+      document.getElementById('openStaffAdvanceStatementBtn')?.addEventListener('click', () => {
+        const dateInput = document.getElementById('staffAdvanceStatementDateInput');
+        if (dateInput && !dateInput.value) {
+          dateInput.value = (typeof getTodayDhakaDate === 'function') ? getTodayDhakaDate() : new Date().toLocaleDateString('en-CA');
+        }
+        showModal('staffAdvanceStatementModal');
+        fetchAndRenderStaffAdvanceStatement();
+      });
+
+      document.getElementById('closeStaffAdvanceStatementBtn')?.addEventListener('click', () => hideModal('staffAdvanceStatementModal'));
+      document.getElementById('closeStaffAdvanceStatementModalBtn')?.addEventListener('click', () => hideModal('staffAdvanceStatementModal'));
+
+      async function fetchAndRenderStaffAdvanceStatement() {
+        const container = document.getElementById('staffAdvanceStatementTableBody');
+        const totalEl = document.getElementById('staffAdvanceStatementTotalAmount');
+        const dateDisplay = document.getElementById('staffStatementDateDisplay');
+        const dateInput = document.getElementById('staffAdvanceStatementDateInput');
+
+        if (!container) return;
+        const dateVal = dateInput ? dateInput.value : ((typeof getTodayDhakaDate === 'function') ? getTodayDhakaDate() : new Date().toLocaleDateString('en-CA'));
+        if (dateDisplay) dateDisplay.textContent = `Date: ${dateVal}`;
+
+        container.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 1.5rem; color: #64748b;">Loading statement...</td></tr>`;
+
+        try {
+          const res = await api.get(`/staff/advance-statement?date=${encodeURIComponent(dateVal)}`);
+          if (!res || !res.success) throw new Error(res?.error || 'Failed to load statement');
+
+          const payments = res.payments || [];
+          const totalAmount = res.totalAmount || 0;
+
+          if (totalEl) totalEl.textContent = `৳${totalAmount.toLocaleString()}`;
+
+          if (payments.length === 0) {
+            container.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 1.5rem; color: #64748b;">No staff salary or advance payments recorded for ${dateVal}.</td></tr>`;
+            return;
+          }
+
+          container.innerHTML = payments.map(p => `
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 8px; font-weight: 700; color: #0f172a;">${escapeHtml(p.staff_name)}</td>
+              <td style="padding: 8px; color: #475569;">${escapeHtml(p.staff_phone || 'N/A')}</td>
+              <td style="padding: 8px; text-align: right; color: #0284c7; font-weight: 600;">৳${(p.fixed_salary || 0).toLocaleString()}</td>
+              <td style="padding: 8px; color: #475569; font-size: 0.78rem;">${escapeHtml(p.note || 'Salary / Advance')}</td>
+              <td style="padding: 8px; text-align: right; font-weight: 700; color: #16a34a;">৳${(p.amount || 0).toLocaleString()}</td>
+            </tr>
+          `).join('');
+        } catch (err) {
+          console.error('Error loading staff statement:', err);
+          container.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 1.5rem; color: #dc2626;">Error: ${escapeHtml(err.message)}</td></tr>`;
+        }
+      }
+
+      window.fetchAndRenderStaffAdvanceStatement = fetchAndRenderStaffAdvanceStatement;
 
       // Filter search input
       searchInput.addEventListener('input', () => {

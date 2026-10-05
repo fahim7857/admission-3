@@ -46,6 +46,10 @@
           <span class="material-symbols-outlined">badge</span>
           Teachers
         </a>
+        <a href="staff.html" class="nav-link">
+          <span class="material-symbols-outlined">assignment_ind</span>
+          Staff
+        </a>
         <a href="monthly-overview.html" class="nav-link">
           <span class="material-symbols-outlined">calendar_month</span>
           Monthly Overview
@@ -123,6 +127,11 @@
           </div>
 
           <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="btn btn-secondary btn-sm" id="openOthersIncomeModalBtn"
+              style="background: #f0fdf4; color: #16a34a; border-color: #bbf7d0;">
+              <span class="material-symbols-outlined" style="font-size: 1.1rem;">library_add</span>
+              + Others Income
+            </button>
             <button class="btn btn-secondary btn-sm" onclick="openDailyVoucherModal('payments')">
               <span class="material-symbols-outlined" style="font-size: 1.1rem;">calendar_today</span>
               Print Daily Voucher
@@ -384,6 +393,54 @@
           <button type="button" class="btn btn-secondary" onclick="closeModal('modal-payments-record')">Cancel</button>
           <button type="submit" id="btn-submit-fee-payment" class="btn btn-primary" disabled>Save & Issue
             Receipt</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Record Others Income -->
+  <div id="modal-others-income" class="modal-overlay">
+    <div class="modal-dialog" style="max-width: 460px;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="display: flex; align-items: center; gap: 0.4rem;">
+          <span class="material-symbols-outlined" style="color: #16a34a;">library_add</span>
+          Record "Others" Miscellaneous Income
+        </h3>
+        <button class="modal-close" onclick="closeModal('modal-others-income')">&times;</button>
+      </div>
+      <form id="form-modal-others-income">
+        <div class="modal-body" style="gap: 1rem;">
+          <div id="othersIncomeFormError"
+            style="display: none; padding: 0.5rem 0.75rem; background: #ffeeec; color: #b91c1c; border-radius: 6px; font-size: 0.8rem;">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="othersDescriptionInput">Custom Description / Income Type *</label>
+            <input type="text" id="othersDescriptionInput" class="form-control"
+              placeholder="e.g. Exam Fee, Sheet Sale, etc." required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="othersAmountInput">Amount (৳) *</label>
+            <input type="number" id="othersAmountInput" class="form-control" placeholder="e.g. 500" min="1" step="any"
+              required>
+            <small style="color: #64748b; font-size: 0.75rem; margin-top: 0.2rem; display: block;">Independent from
+              student monthly/admission fixed fees.</small>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="othersDateInput">Collection Date *</label>
+            <input type="date" id="othersDateInput" class="form-control" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="othersNoteInput">Note / Remarks</label>
+            <input type="text" id="othersNoteInput" class="form-control" placeholder="Optional details">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-others-income')">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="background: #16a34a;">Save Others Income</button>
         </div>
       </form>
     </div>

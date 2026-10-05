@@ -73,6 +73,7 @@ export async function startServer() {
     'student-details',
     'payments',
     'teachers',
+    'staff',
     'monthly-overview',
     'expenses',
     'reports',

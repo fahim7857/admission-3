@@ -214,6 +214,64 @@ function setupEventListeners() {
   }
 }
 
+// Others Income Modal Handlers
+document.addEventListener('DOMContentLoaded', () => {
+  const openOthersIncomeModalBtn = document.getElementById('openOthersIncomeModalBtn');
+  if (openOthersIncomeModalBtn) {
+    openOthersIncomeModalBtn.addEventListener('click', () => {
+      clearFormError('othersIncomeFormError');
+      const dateInput = document.getElementById('othersDateInput');
+      if (dateInput) dateInput.value = (typeof getTodayDhakaDate === 'function') ? getTodayDhakaDate() : new Date().toLocaleDateString('en-CA');
+      document.getElementById('form-modal-others-income')?.reset();
+      if (dateInput) dateInput.value = (typeof getTodayDhakaDate === 'function') ? getTodayDhakaDate() : new Date().toLocaleDateString('en-CA');
+      showModal('modal-others-income');
+    });
+  }
+
+  const othersForm = document.getElementById('form-modal-others-income');
+  if (othersForm) {
+    othersForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearFormError('othersIncomeFormError');
+
+      const description = document.getElementById('othersDescriptionInput').value.trim();
+      const amount = parseFloat(document.getElementById('othersAmountInput').value);
+      const collection_date = document.getElementById('othersDateInput').value;
+      const note = document.getElementById('othersNoteInput').value.trim();
+
+      if (!description) {
+        showFormError('othersIncomeFormError', 'Please enter a description for Others income.');
+        return;
+      }
+      if (isNaN(amount) || amount <= 0) {
+        showFormError('othersIncomeFormError', 'Please enter a valid amount.');
+        return;
+      }
+
+      try {
+        const res = await api.post('/others-income', {
+          description,
+          amount,
+          collection_date,
+          note
+        });
+
+        if (res && res.success) {
+          showToast(res.message || 'Others income recorded successfully!', 'success');
+          closeModal('modal-others-income');
+          othersForm.reset();
+          await loadPayments();
+        } else {
+          showFormError('othersIncomeFormError', res?.error || 'Failed to record Others income.');
+        }
+      } catch (err) {
+        console.error('Others income error:', err);
+        showFormError('othersIncomeFormError', err.message || 'Failed to record Others income.');
+      }
+    });
+  }
+});
+
 async function lookupStudents(autoSelectIfSingle = false) {
   const input = document.getElementById('modal-pay-student-input');
   const filterClass = document.getElementById('modal-pay-filter-class');
@@ -469,7 +527,7 @@ function exportPaymentsToExcel() {
 
 function debounce(func, wait) {
   let timeout;
-  return function(...args) {
+  return function (...args) {
     clearTimeout(timeout);
     timeout = setTimeout(() => func.apply(this, args), wait);
   };

@@ -210,6 +210,37 @@ export async function initDatabase() {
       value TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS staff (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      phone TEXT,
+      address TEXT,
+      work_post TEXT,
+      fixed_salary REAL DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now', 'localtime'))
+    );
+
+    CREATE TABLE IF NOT EXISTS staff_payments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      staff_id INTEGER NOT NULL,
+      payment_date TEXT NOT NULL,
+      amount REAL NOT NULL,
+      note TEXT,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (staff_id) REFERENCES staff(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS other_collections (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      description TEXT NOT NULL,
+      amount REAL NOT NULL,
+      collection_date TEXT NOT NULL,
+      collection_time TEXT NOT NULL,
+      receipt_no TEXT UNIQUE NOT NULL,
+      note TEXT,
+      created_at TEXT DEFAULT (datetime('now', 'localtime'))
+    );
+
     CREATE TABLE IF NOT EXISTS teachers (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -253,6 +284,18 @@ export async function initDatabase() {
     db.prepare("UPDATE students SET status = 'Active' WHERE status != 'Active'").run();
   } catch (e) {
     // ignore if table doesn't exist yet
+  }
+
+  try {
+    db.exec('ALTER TABLE staff ADD COLUMN address TEXT;');
+  } catch (e) {
+    // column may already exist
+  }
+
+  try {
+    db.exec('ALTER TABLE staff ADD COLUMN work_post TEXT;');
+  } catch (e) {
+    // column may already exist
   }
 
   seedDefaultDataIfEmpty();

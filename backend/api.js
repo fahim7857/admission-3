@@ -1253,8 +1253,17 @@ apiRouter.post('/payments', (req, res) => {
     const maxRec = db.prepare("SELECT COUNT(*) as cnt FROM payments").get();
     const receiptNo = `REC-${student.academic_year}-${String(1000 + maxRec.cnt + 1).padStart(4, '0')}`;
 
-    const rawAmount = req.body.amount !== undefined ? parseFloat(req.body.amount) : student.monthly_fee;
-    const finalAmount = (!isNaN(rawAmount) && rawAmount >= 0) ? rawAmount : student.monthly_fee;
+    // Fixed Fee Protection Rule: student monthly tuition fee is predefined and fixed
+    if (req.body.amount !== undefined && req.body.amount !== null && String(req.body.amount).trim() !== '') {
+      const enteredAmount = parseFloat(req.body.amount);
+      if (isNaN(enteredAmount) || Math.abs(enteredAmount - student.monthly_fee) > 0.01) {
+        return res.status(400).json({
+          success: false,
+          error: `Student monthly tuition fee is fixed at ৳${student.monthly_fee}. Collecting partial or modified amounts (৳${enteredAmount}) is not allowed. Use "Others" income for miscellaneous collections.`
+        });
+      }
+    }
+    const finalAmount = student.monthly_fee;
 
     const insert = db.prepare(`
       INSERT INTO payments (
@@ -1788,6 +1797,35 @@ apiRouter.get('/dashboard', (req, res) => {
       FROM payments WHERE academic_year_id = ?
     `).get(ayId);
 
+    // Include Others Miscellaneous Income in totals
+    const todayOtherRow = db.prepare(`
+      SELECT COALESCE(SUM(amount), 0) as total, COUNT(id) as count
+      FROM other_collections WHERE collection_date = ?
+    `).get(today);
+    todayIncomeRow.total += (todayOtherRow?.total || 0);
+    todayIncomeRow.count += (todayOtherRow?.count || 0);
+
+    const weekOtherRow = db.prepare(`
+      SELECT COALESCE(SUM(amount), 0) as total, COUNT(id) as count
+      FROM other_collections WHERE collection_date >= ? AND collection_date <= ?
+    `).get(weekStart, weekEnd);
+    weekIncomeRow.total += (weekOtherRow?.total || 0);
+    weekIncomeRow.count += (weekOtherRow?.count || 0);
+
+    const monthOtherRow = db.prepare(`
+      SELECT COALESCE(SUM(amount), 0) as total, COUNT(id) as count
+      FROM other_collections WHERE collection_date >= ? AND collection_date <= ?
+    `).get(monthStart, monthEnd);
+    monthIncomeRow.total += (monthOtherRow?.total || 0);
+    monthIncomeRow.count += (monthOtherRow?.count || 0);
+
+    const overallOtherRow = db.prepare(`
+      SELECT COALESCE(SUM(amount), 0) as total, COUNT(id) as count
+      FROM other_collections
+    `).get();
+    overallIncomeRow.total += (overallOtherRow?.total || 0);
+    overallIncomeRow.count += (overallOtherRow?.count || 0);
+
     // Expense calculations
     const todayExpenseRow = db.prepare(`
       SELECT COALESCE(SUM(amount), 0) as total, COUNT(id) as count
@@ -2114,6 +2152,16 @@ apiRouter.get('/reports/financial', (req, res) => {
       )
     `).get(ayId, startDate, endDate, startDate, endDate, startDate, endDate);
 
+    const otherIncomeRow = db.prepare(`
+      SELECT COALESCE(SUM(amount), 0) as total, COUNT(id) as count
+      FROM other_collections
+      WHERE collection_date >= ? AND collection_date <= ?
+    `).get(startDate, endDate);
+    if (otherIncomeRow) {
+      incomeRow.total += (otherIncomeRow.total || 0);
+      incomeRow.count += (otherIncomeRow.count || 0);
+    }
+
     const expenseRow = db.prepare(`
       SELECT COALESCE(SUM(amount), 0) as total, COUNT(id) as count
       FROM expenses
@@ -2287,6 +2335,40 @@ apiRouter.get('/vouchers/daily', (req, res) => {
       });
     }
 
+    // 3. Fetch Others Miscellaneous Income collections on date
+    const otherRows = db.prepare(`
+      SELECT id, description, amount, collection_date, collection_time, receipt_no, note
+      FROM other_collections
+      WHERE collection_date = ?
+      ORDER BY id ASC
+    `).all(dateStr);
+
+    let otherIncomeTotal = 0;
+    if (otherRows.length > 0) {
+      const otherItems = [];
+      for (const o of otherRows) {
+        otherIncomeTotal += o.amount || 0;
+        otherItems.push({
+          id: o.id,
+          receipt_no: o.receipt_no,
+          student_name: o.description,
+          roll_number: 'N/A',
+          method: 'Cash',
+          time: o.collection_time,
+          note: o.note || o.description,
+          amount: o.amount
+        });
+      }
+      totalPayment += otherIncomeTotal;
+      paymentCategoryMap.set('others', {
+        class_id: 'others',
+        category_name: 'Others Income',
+        count: otherRows.length,
+        total_amount: otherIncomeTotal,
+        items: otherItems
+      });
+    }
+
     const paymentCategories = Array.from(paymentCategoryMap.values());
 
     res.json({
@@ -2303,7 +2385,7 @@ apiRouter.get('/vouchers/daily', (req, res) => {
         payments: {
           categories: paymentCategories,
           total: totalPayment,
-          count: paymentRows.length
+          count: paymentRows.length + otherRows.length
         },
         netBalance: totalPayment - totalExpense
       }
@@ -2386,6 +2468,33 @@ apiRouter.get('/vouchers/monthly', (req, res) => {
       dayData.total += p.amount || 0;
       dayData.count += 1;
       dayData.items.push(p);
+    }
+
+    // Include others collections for that month
+    const otherMonthRows = db.prepare(`
+      SELECT id, amount, collection_date, receipt_no, description
+      FROM other_collections
+      WHERE collection_date LIKE ?
+      ORDER BY collection_date ASC, id ASC
+    `).all(`${monthPrefix}-%`);
+
+    for (const o of otherMonthRows) {
+      totalPayment += o.amount || 0;
+      const d = o.collection_date;
+      if (!dailyPaymentsMap.has(d)) {
+        dailyPaymentsMap.set(d, { total: 0, count: 0, items: [] });
+      }
+      const dayData = dailyPaymentsMap.get(d);
+      dayData.total += o.amount || 0;
+      dayData.count += 1;
+      dayData.items.push({
+        id: o.id,
+        amount: o.amount,
+        payment_date: o.collection_date,
+        receipt_no: o.receipt_no,
+        class_name: 'Others Income',
+        student_name: o.description
+      });
     }
 
     // 3. Build calendar matrix for every day (1..totalDays)
@@ -2599,7 +2708,7 @@ apiRouter.get('/teachers', (req, res) => {
 
       const totalEarned = earnedRow.total_earned || 0;
       const totalPaid = paidRow.total_paid || 0;
-      const currentPayable = Math.max(0, totalEarned - totalPaid);
+      const currentPayable = totalEarned - totalPaid;
 
       return {
         ...t,
@@ -2771,7 +2880,7 @@ apiRouter.get('/teachers/:id', (req, res) => {
 
     const totalEarned = earnedRow.total_earned || 0;
     const totalPaid = paidRow.total_paid || 0;
-    const currentPayable = Math.max(0, totalEarned - totalPaid);
+    const currentPayable = totalEarned - totalPaid;
 
     const activities = db.prepare('SELECT * FROM teacher_activities WHERE teacher_id = ? ORDER BY activity_date DESC, id DESC').all(id);
     const payments = db.prepare('SELECT * FROM teacher_payments WHERE teacher_id = ? ORDER BY payment_date DESC, id DESC').all(id);
@@ -3040,29 +3149,29 @@ apiRouter.post('/teachers/:id/pay', (req, res) => {
     const earnedRow = db.prepare('SELECT COALESCE(SUM(daily_total), 0) as total FROM teacher_activities WHERE teacher_id = ?').get(teacherId);
     const paidRow = db.prepare('SELECT COALESCE(SUM(amount), 0) as total FROM teacher_payments WHERE teacher_id = ?').get(teacherId);
 
-    const currentPayable = Math.max(0, (earnedRow.total || 0) - (paidRow.total || 0));
-
-    if (currentPayable <= 0) {
-      return res.status(400).json({ success: false, error: `No current payable balance for ${teacher.name}` });
-    }
+    const currentEarned = earnedRow.total || 0;
+    const currentPaid = paidRow.total || 0;
+    const currentPayable = currentEarned - currentPaid;
 
     const reqAmount = req.body.amount !== undefined && req.body.amount !== null && req.body.amount !== ''
       ? parseFloat(req.body.amount)
-      : currentPayable;
+      : Math.max(0, currentPayable);
 
     if (isNaN(reqAmount) || reqAmount <= 0) {
       return res.status(400).json({ success: false, error: 'Invalid payment amount' });
     }
 
-    const payAmount = Math.min(reqAmount, currentPayable);
+    const payAmount = reqAmount;
 
     const paymentDate = (req.body.payment_date && /^\d{4}-\d{2}-\d{2}$/.test(req.body.payment_date))
       ? req.body.payment_date
       : getDhakaDate();
 
+    const isAdvance = payAmount > currentPayable;
+    const defaultNote = isAdvance ? `Advance payment to ${teacher.name}` : `Salary paid to ${teacher.name}`;
     const note = req.body.note && req.body.note.trim()
       ? req.body.note.trim()
-      : `Salary paid to ${teacher.name}`;
+      : defaultNote;
 
     // 1. Insert into teacher_payments
     const payResult = db.prepare(`
@@ -3082,24 +3191,23 @@ apiRouter.post('/teachers/:id/pay', (req, res) => {
     const voucherNo = `V-${String(100 + (maxVoucher ? maxVoucher.count : 0) + 1)}`;
 
     // 4. Create matching expense entry linked directly to the Expense section
-    const expenseDescription = `Salary paid to ${teacher.name}`;
     db.prepare(`
       INSERT INTO expenses (category_id, amount, description, expense_date, expense_time, voucher_no)
       VALUES (?, ?, ?, ?, ?, ?)
     `).run(
       teacherCat.id,
       payAmount,
-      expenseDescription,
+      note,
       paymentDate,
       getDhakaTime(),
       voucherNo
     );
 
-    const newPayable = Math.max(0, currentPayable - payAmount);
+    const newPayable = currentPayable - payAmount;
 
     res.json({
       success: true,
-      message: `Successfully paid ৳${payAmount.toLocaleString()} to ${teacher.name}. Current payable is now ৳${newPayable.toLocaleString()}.`,
+      message: `Successfully paid ৳${payAmount.toLocaleString()} to ${teacher.name}. Balance is now ৳${newPayable.toLocaleString()}.`,
       data: {
         paymentId: Number(payResult.lastInsertRowid),
         paidAmount: payAmount,
@@ -3108,6 +3216,351 @@ apiRouter.post('/teachers/:id/pay', (req, res) => {
         currentPayable: newPayable
       }
     });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+apiRouter.get('/teachers/advance-statement', (req, res) => {
+  try {
+    const date = req.query.date || getDhakaDate();
+    const payments = db.prepare(`
+      SELECT tp.*, t.name as teacher_name, t.phone as teacher_phone
+      FROM teacher_payments tp
+      JOIN teachers t ON tp.teacher_id = t.id
+      WHERE tp.payment_date = ?
+      ORDER BY tp.id DESC
+    `).all(date);
+
+    let totalAmount = 0;
+    const items = payments.map(p => {
+      totalAmount += p.amount || 0;
+      const isAdvance = p.note && /advance/i.test(p.note);
+      return {
+        id: p.id,
+        date: p.payment_date,
+        payment_date: p.payment_date,
+        teacher_name: p.teacher_name,
+        teacher_phone: p.teacher_phone,
+        amount: p.amount,
+        payment_type: isAdvance ? 'Advance' : 'Payment / Advance',
+        description: p.note || 'Teacher Payment/Advance',
+        note: p.note || 'Teacher Payment/Advance'
+      };
+    });
+
+    res.json({
+      success: true,
+      date,
+      totalAmount,
+      count: items.length,
+      payments: items
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ----------------------------------------------------
+// STAFF MANAGEMENT & ADVANCE ENDPOINTS
+// ----------------------------------------------------
+apiRouter.get('/staff', (req, res) => {
+  try {
+    const staffList = db.prepare('SELECT * FROM staff ORDER BY name ASC').all();
+    const results = staffList.map(st => {
+      const paidRow = db.prepare('SELECT COALESCE(SUM(amount), 0) as total FROM staff_payments WHERE staff_id = ?').get(st.id);
+      return {
+        ...st,
+        total_paid: paidRow.total || 0
+      };
+    });
+    res.json({ success: true, staff: results });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+apiRouter.get('/staff/:id', (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const staff = db.prepare('SELECT * FROM staff WHERE id = ?').get(id);
+    if (!staff) {
+      return res.status(404).json({ success: false, error: 'Staff member not found' });
+    }
+    const paidRow = db.prepare('SELECT COALESCE(SUM(amount), 0) as total FROM staff_payments WHERE staff_id = ?').get(id);
+    const payments = db.prepare('SELECT * FROM staff_payments WHERE staff_id = ? ORDER BY payment_date DESC, id DESC').all(id);
+
+    res.json({
+      success: true,
+      data: {
+        ...staff,
+        total_paid: paidRow ? (paidRow.total || 0) : 0,
+        payments
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+apiRouter.post('/staff', (req, res) => {
+  try {
+    const { name, phone, address, work_post, fixed_salary } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, error: 'Staff name is required' });
+    }
+    const salary = parseFloat(fixed_salary) || 0;
+    const stmt = db.prepare(`
+      INSERT INTO staff (name, phone, address, work_post, fixed_salary)
+      VALUES (?, ?, ?, ?, ?)
+    `);
+    const result = stmt.run(
+      name.trim(),
+      phone ? phone.trim() : '',
+      address ? address.trim() : '',
+      work_post ? work_post.trim() : '',
+      salary
+    );
+    const newStaff = db.prepare('SELECT * FROM staff WHERE id = ?').get(result.lastInsertRowid);
+    res.json({ success: true, message: `Staff "${newStaff.name}" added successfully`, data: newStaff });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+apiRouter.put('/staff/:id', (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const staff = db.prepare('SELECT * FROM staff WHERE id = ?').get(id);
+    if (!staff) {
+      return res.status(404).json({ success: false, error: 'Staff not found' });
+    }
+    const name = req.body.name !== undefined ? req.body.name.trim() : staff.name;
+    const phone = req.body.phone !== undefined ? req.body.phone.trim() : staff.phone;
+    const address = req.body.address !== undefined ? req.body.address.trim() : (staff.address || '');
+    const work_post = req.body.work_post !== undefined ? req.body.work_post.trim() : (staff.work_post || '');
+    const fixed_salary = req.body.fixed_salary !== undefined ? (parseFloat(req.body.fixed_salary) || 0) : staff.fixed_salary;
+
+    db.prepare(`
+      UPDATE staff
+      SET name = ?, phone = ?, address = ?, work_post = ?, fixed_salary = ?
+      WHERE id = ?
+    `).run(name, phone, address, work_post, fixed_salary, id);
+
+    const updated = db.prepare('SELECT * FROM staff WHERE id = ?').get(id);
+    res.json({ success: true, message: `Staff "${updated.name}" updated successfully`, data: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+apiRouter.delete('/staff/:id', requireDeletePermission, (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const staff = db.prepare('SELECT * FROM staff WHERE id = ?').get(id);
+    if (!staff) {
+      return res.status(404).json({ success: false, error: 'Staff not found' });
+    }
+    db.prepare('DELETE FROM staff_payments WHERE staff_id = ?').run(id);
+    db.prepare('DELETE FROM staff WHERE id = ?').run(id);
+    res.json({ success: true, message: `Staff "${staff.name}" deleted successfully` });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+apiRouter.post('/staff/:id/pay', (req, res) => {
+  try {
+    const staffId = parseInt(req.params.id, 10);
+    const staff = db.prepare('SELECT * FROM staff WHERE id = ?').get(staffId);
+    if (!staff) {
+      return res.status(404).json({ success: false, error: 'Staff not found' });
+    }
+
+    const { amount, payment_date, note } = req.body;
+    const payAmount = parseFloat(amount);
+    if (isNaN(payAmount) || payAmount <= 0) {
+      return res.status(400).json({ success: false, error: 'Valid payment amount is required' });
+    }
+
+    const paymentDate = (payment_date && /^\d{4}-\d{2}-\d{2}$/.test(payment_date)) ? payment_date : getDhakaDate();
+    const isAdvance = payAmount > (staff.fixed_salary || 0);
+    const defaultNote = isAdvance ? `Advance payment to staff ${staff.name}` : `Salary / Advance paid to staff ${staff.name}`;
+    const payNote = note && note.trim() ? note.trim() : defaultNote;
+
+    // 1. Insert into staff_payments (Stores dedicated staff payment/advance history)
+    const payResult = db.prepare(`
+      INSERT INTO staff_payments (staff_id, payment_date, amount, note)
+      VALUES (?, ?, ?, ?)
+    `).run(staffId, paymentDate, payAmount, payNote);
+
+    // 2. Ensure "Staff Salary" expense category exists in expense_categories
+    let staffCat = db.prepare("SELECT id FROM expense_categories WHERE name = 'Staff Salary'").get();
+    if (!staffCat) {
+      const catRes = db.prepare("INSERT INTO expense_categories (name, is_default) VALUES ('Staff Salary', 1)").run();
+      staffCat = { id: Number(catRes.lastInsertRowid) };
+    }
+
+    // 3. Generate sequential voucher number matching application expenses
+    const maxVoucher = db.prepare('SELECT COUNT(*) as count FROM expenses').get();
+    const voucherNo = `V-${String(100 + (maxVoucher ? maxVoucher.count : 0) + 1)}`;
+
+    // 4. Create matching expense entry linked directly to the Expense system
+    db.prepare(`
+      INSERT INTO expenses (category_id, amount, description, expense_date, expense_time, voucher_no)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(
+      staffCat.id,
+      payAmount,
+      payNote,
+      paymentDate,
+      getDhakaTime(),
+      voucherNo
+    );
+
+    res.json({
+      success: true,
+      message: `Successfully recorded ৳${payAmount.toLocaleString()} payment/advance for staff ${staff.name}. Added to Expense system.`,
+      data: {
+        paymentId: Number(payResult.lastInsertRowid),
+        paidAmount: payAmount,
+        paymentDate,
+        voucherNo
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+apiRouter.get('/staff/advance-statement', (req, res) => {
+  try {
+    const date = req.query.date || getDhakaDate();
+    const payments = db.prepare(`
+      SELECT sp.*, s.name as staff_name, s.phone as staff_phone, s.address, s.work_post, s.fixed_salary
+      FROM staff_payments sp
+      JOIN staff s ON sp.staff_id = s.id
+      WHERE sp.payment_date = ?
+      ORDER BY sp.id DESC
+    `).all(date);
+
+    let totalAmount = 0;
+    const items = payments.map(p => {
+      totalAmount += p.amount || 0;
+      const isAdvance = p.amount > (p.fixed_salary || 0) || (p.note && /advance/i.test(p.note));
+      return {
+        id: p.id,
+        date: p.payment_date,
+        payment_date: p.payment_date,
+        staff_name: p.staff_name,
+        staff_phone: p.staff_phone,
+        work_post: p.work_post || 'Office Staff',
+        address: p.address || '',
+        fixed_salary: p.fixed_salary || 0,
+        amount: p.amount,
+        payment_type: isAdvance ? 'Advance' : 'Salary Payment',
+        description: p.note || 'Staff Salary / Advance',
+        note: p.note || 'Staff Salary / Advance'
+      };
+    });
+
+    res.json({
+      success: true,
+      date,
+      totalAmount,
+      count: items.length,
+      payments: items
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ----------------------------------------------------
+// OTHERS INCOME ENDPOINTS
+// ----------------------------------------------------
+apiRouter.get('/others-income', (req, res) => {
+  try {
+    const startDate = req.query.startDate || null;
+    const endDate = req.query.endDate || null;
+    let query = 'SELECT * FROM other_collections WHERE 1=1';
+    const params = [];
+
+    if (startDate) {
+      query += ' AND collection_date >= ?';
+      params.push(startDate);
+    }
+    if (endDate) {
+      query += ' AND collection_date <= ?';
+      params.push(endDate);
+    }
+
+    query += ' ORDER BY collection_date DESC, id DESC';
+    const items = db.prepare(query).all(...params);
+
+    let totalAmount = 0;
+    items.forEach(i => totalAmount += (i.amount || 0));
+
+    res.json({
+      success: true,
+      totalAmount,
+      count: items.length,
+      collections: items
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+apiRouter.post('/others-income', (req, res) => {
+  try {
+    const { description, amount, collection_date, note } = req.body;
+    if (!description || !description.trim()) {
+      return res.status(400).json({ success: false, error: 'Description is required for Others income' });
+    }
+    const amt = parseFloat(amount);
+    if (isNaN(amt) || amt <= 0) {
+      return res.status(400).json({ success: false, error: 'Valid positive amount is required' });
+    }
+
+    const collectionDate = (collection_date && /^\d{4}-\d{2}-\d{2}$/.test(collection_date)) ? collection_date : getDhakaDate();
+    const collectionTime = getDhakaTime();
+
+    const maxCol = db.prepare('SELECT COUNT(*) as count FROM other_collections').get();
+    const receiptNo = `OTH-${String(1000 + (maxCol ? maxCol.count : 0) + 1)}`;
+
+    const stmt = db.prepare(`
+      INSERT INTO other_collections (description, amount, collection_date, collection_time, receipt_no, note)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `);
+    const result = stmt.run(description.trim(), amt, collectionDate, collectionTime, receiptNo, note ? note.trim() : description.trim());
+
+    res.json({
+      success: true,
+      message: `Successfully recorded Others income: ${description.trim()} (৳${amt.toLocaleString()})`,
+      data: {
+        id: Number(result.lastInsertRowid),
+        receipt_no: receiptNo,
+        description: description.trim(),
+        amount: amt,
+        collection_date: collectionDate,
+        collection_time: collectionTime
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+apiRouter.delete('/others-income/:id', requireDeletePermission, (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const item = db.prepare('SELECT * FROM other_collections WHERE id = ?').get(id);
+    if (!item) {
+      return res.status(404).json({ success: false, error: 'Record not found' });
+    }
+    db.prepare('DELETE FROM other_collections WHERE id = ?').run(id);
+    res.json({ success: true, message: 'Others income record deleted successfully' });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }

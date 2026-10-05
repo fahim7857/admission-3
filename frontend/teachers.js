@@ -393,8 +393,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <tr>
           <td colspan="5" style="text-align: center; padding: 2.25rem; color: #64748b;">
             ${teachersList.length === 0
-              ? 'No teachers registered in the database yet. Click "Add New Teacher" above.'
-              : 'No matching teachers found.'}
+          ? 'No teachers registered in the database yet. Click "Add New Teacher" above.'
+          : 'No matching teachers found.'}
           </td>
         </tr>
       `;
@@ -403,7 +403,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     teachersTableBody.innerHTML = filtered.map(t => {
       const payable = t.current_payable || 0;
+      const isNegative = payable < 0;
       const hasPayable = payable > 0;
+
+      let badgeBg = '#dcfce7';
+      let badgeColor = '#15803d';
+      let displayPayable = `৳${payable.toLocaleString()}`;
+
+      if (hasPayable) {
+        badgeBg = '#fee2e2';
+        badgeColor = '#dc2626';
+      } else if (isNegative) {
+        badgeBg = '#fef3c7';
+        badgeColor = '#b45309';
+        displayPayable = `-৳${Math.abs(payable).toLocaleString()}`;
+      }
 
       return `
         <tr>
@@ -423,8 +437,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </td>
           <td>
-            <span class="badge-tag" style="background: ${hasPayable ? '#fee2e2' : '#dcfce7'}; color: ${hasPayable ? '#dc2626' : '#15803d'}; font-weight: 700; font-size: 0.82rem; padding: 0.25rem 0.6rem;">
-              ৳${payable.toLocaleString()}
+            <span class="badge-tag" style="background: ${badgeBg}; color: ${badgeColor}; font-weight: 700; font-size: 0.82rem; padding: 0.25rem 0.6rem;">
+              ${displayPayable}
             </span>
           </td>
           <td style="text-align: right;">
@@ -792,7 +806,16 @@ document.addEventListener('DOMContentLoaded', () => {
       if (dName) dName.textContent = `${t.name} • Ledger & Summary`;
       if (dWork) dWork.textContent = `${t.total_classes || 0} Cls | ${t.total_khatas || 0} Khatas | ${t.total_guards || 0} Guards`;
       if (dEarned) dEarned.textContent = `৳${(t.total_earned || 0).toLocaleString()}`;
-      if (dPayable) dPayable.textContent = `৳${(t.current_payable || 0).toLocaleString()}`;
+      if (dPayable) {
+        const curPay = t.current_payable || 0;
+        if (curPay < 0) {
+          dPayable.textContent = `-৳${Math.abs(curPay).toLocaleString()} (Advance)`;
+          dPayable.style.color = '#b45309';
+        } else {
+          dPayable.textContent = `৳${curPay.toLocaleString()}`;
+          dPayable.style.color = curPay > 0 ? '#dc2626' : '#15803d';
+        }
+      }
 
       const payBtn = document.getElementById('payTeacherBtn');
       const payLabel = document.getElementById('payBtnLabel');
@@ -855,52 +878,130 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  async function handlePayTeacherFromDetailModal() {
-    if (!selectedTeacherForDetail) return;
-    const t = selectedTeacherForDetail;
-    const payable = t.current_payable || 0;
+  // Advance Statement and Advance Payment modal bindings
+  const openAdvanceStatementBtn = document.getElementById('openAdvanceStatementBtn');
+  if (openAdvanceStatementBtn) {
+    openAdvanceStatementBtn.addEventListener('click', () => {
+      const dateInput = document.getElementById('advanceStatementDateInput');
+      if (dateInput && !dateInput.value) {
+        dateInput.value = getTodayDhakaDate();
+      }
+      showModal('teacherAdvanceStatementModal');
+      fetchAndRenderTeacherAdvanceStatement();
+    });
+  }
 
-    if (payable <= 0) {
-      notify('This teacher has no current payable balance (৳0).', 'info');
+  const closeAdvanceStatementBtn = document.getElementById('closeAdvanceStatementBtn');
+  const closeAdvanceStatementModalBtn = document.getElementById('closeAdvanceStatementModalBtn');
+  [closeAdvanceStatementBtn, closeAdvanceStatementModalBtn].forEach(el => {
+    if (el) el.addEventListener('click', () => hideModal('teacherAdvanceStatementModal'));
+  });
+
+  const openTeacherAdvanceModalBtn = document.getElementById('openTeacherAdvanceModalBtn');
+  if (openTeacherAdvanceModalBtn) {
+    openTeacherAdvanceModalBtn.addEventListener('click', () => {
+      clearFormError('teacherAdvanceFormError');
+      const dateInput = document.getElementById('advanceDateInput');
+      if (dateInput) dateInput.value = getTodayDhakaDate();
+
+      const sel = document.getElementById('advanceTeacherSelect');
+      if (sel) {
+        sel.innerHTML = '<option value="">Select teacher...</option>' + teachersList.map(t => `<option value="${t.id}">${t.name} (Payable: ৳${(t.current_payable || 0).toLocaleString()})</option>`).join('');
+      }
+      showModal('teacherAdvanceModal');
+    });
+  }
+
+  const closeTeacherAdvanceModalBtn = document.getElementById('closeTeacherAdvanceModalBtn');
+  const cancelTeacherAdvanceBtn = document.getElementById('cancelTeacherAdvanceBtn');
+  [closeTeacherAdvanceModalBtn, cancelTeacherAdvanceBtn].forEach(el => {
+    if (el) el.addEventListener('click', () => hideModal('teacherAdvanceModal'));
+  });
+
+  const teacherAdvanceForm = document.getElementById('teacherAdvanceForm');
+  if (teacherAdvanceForm) {
+    teacherAdvanceForm.addEventListener('submit', handleSaveTeacherAdvance);
+  }
+});
+
+async function fetchAndRenderTeacherAdvanceStatement() {
+  const container = document.getElementById('advanceStatementTableBody');
+  const totalEl = document.getElementById('advanceStatementTotalAmount');
+  const dateDisplay = document.getElementById('statementDateDisplay');
+  const dateInput = document.getElementById('advanceStatementDateInput');
+
+  if (!container) return;
+  const dateVal = dateInput ? dateInput.value : getTodayDhakaDate();
+  if (dateDisplay) dateDisplay.textContent = `Date: ${formatDate(dateVal)}`;
+
+  container.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 1.5rem; color: #64748b;">Loading advance statement...</td></tr>`;
+
+  try {
+    const res = await apiClient.get(`/teachers/advance-statement?date=${encodeURIComponent(dateVal)}`);
+    if (!res || !res.success) throw new Error(res?.error || 'Failed to load advance statement');
+
+    const payments = res.payments || [];
+    const totalAmount = res.totalAmount || 0;
+
+    if (totalEl) totalEl.textContent = `৳${totalAmount.toLocaleString()}`;
+
+    if (payments.length === 0) {
+      container.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 1.5rem; color: #64748b;">No teacher advance or payment records found for ${formatDate(dateVal)}.</td></tr>`;
       return;
     }
 
-    const confirmMsg =
-      `Confirm Payment to ${t.name}\n\n` +
-      `Amount: ৳${payable.toLocaleString()}\n\n` +
-      `This will:\n` +
-      `1. Record payment in ${t.name}'s payment history\n` +
-      `2. Create an institutional expense under "Teacher Salary" with description: "Salary paid to ${t.name}"\n` +
-      `3. Reset current payable balance to ৳0\n\n` +
-      `Click OK to proceed.`;
-
-    if (!confirm(confirmMsg)) return;
-
-    const payBtn = document.getElementById('payTeacherBtn');
-    if (payBtn) {
-      payBtn.disabled = true;
-      payBtn.textContent = 'Processing...';
-    }
-
-    try {
-      const res = await apiClient.post(`/teachers/${t.id}/pay`, {
-        amount: payable,
-        payment_date: getTodayDhakaDate(),
-        note: `Salary paid to ${t.name}`
-      });
-
-      if (res && res.success) {
-        notify(`Payment of ৳${payable.toLocaleString()} cleared for ${t.name}! Teacher Salary expense voucher created.`, 'success');
-        hideModal('teacherDetailModal');
-        await loadAllData();
-      } else {
-        notify((res && res.error) || 'Payment failed', 'error');
-      }
-    } catch (e) {
-      console.error('Payment error:', e);
-      notify(e.message || 'Payment processing error', 'error');
-    } finally {
-      if (payBtn) payBtn.disabled = false;
-    }
+    container.innerHTML = payments.map(p => `
+      <tr style="border-bottom: 1px solid #f1f5f9;">
+        <td style="padding: 8px; color: #475569; white-space: nowrap;">${escapeHtml(p.date || p.payment_date || dateVal)}</td>
+        <td style="padding: 8px; font-weight: 700; color: #0f172a;">${escapeHtml(p.teacher_name)}</td>
+        <td style="padding: 8px; color: #0284c7; font-weight: 600;">${escapeHtml(p.payment_type || 'Advance / Payment')}</td>
+        <td style="padding: 8px; color: #475569; font-size: 0.78rem;">${escapeHtml(p.description || p.note || 'Advance / Payment')}</td>
+        <td style="padding: 8px; text-align: right; font-weight: 700; color: #16a34a;">৳${(p.amount || 0).toLocaleString()}</td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    console.error('Error loading advance statement:', err);
+    container.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 1.5rem; color: #dc2626;">Error: ${escapeHtml(err.message)}</td></tr>`;
   }
-});
+}
+
+async function handleSaveTeacherAdvance(e) {
+  e.preventDefault();
+  clearFormError('teacherAdvanceFormError');
+
+  const teacherId = document.getElementById('advanceTeacherSelect').value;
+  const amount = parseFloat(document.getElementById('advanceAmountInput').value);
+  const paymentDate = document.getElementById('advanceDateInput').value;
+  const note = document.getElementById('advanceNoteInput').value.trim();
+
+  if (!teacherId) {
+    showFormError('teacherAdvanceFormError', 'Please select a teacher.');
+    return;
+  }
+  if (isNaN(amount) || amount <= 0) {
+    showFormError('teacherAdvanceFormError', 'Please enter a valid advance amount.');
+    return;
+  }
+
+  try {
+    const res = await apiClient.post(`/teachers/${teacherId}/pay`, {
+      amount,
+      payment_date: paymentDate || getTodayDhakaDate(),
+      note: note || 'Teacher Advance Payment'
+    });
+
+    if (res && res.success) {
+      notify(res.message || 'Advance payment posted successfully!', 'success');
+      hideModal('teacherAdvanceModal');
+      document.getElementById('teacherAdvanceForm').reset();
+      await loadAllData();
+    } else {
+      showFormError('teacherAdvanceFormError', res?.error || 'Failed to post advance payment.');
+    }
+  } catch (err) {
+    console.error('Advance payment error:', err);
+    showFormError('teacherAdvanceFormError', err.message || 'Failed to post advance payment.');
+  }
+}
+
+window.fetchAndRenderTeacherAdvanceStatement = fetchAndRenderTeacherAdvanceStatement;
