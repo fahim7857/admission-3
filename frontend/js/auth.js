@@ -13,7 +13,7 @@
   }
 
   const config = (async () => {
-    const res = await fetch('/api/auth/config');
+    const res = await fetch('/admission_3/api/auth/config');
     const body = await res.json().catch(() => ({}));
     if (!res.ok || !body.success) {
       throw new Error(body.message || body.error || 'Authentication is not configured');
@@ -56,7 +56,7 @@
 
     if (!role && accessToken) {
       try {
-        const res = await fetch('/api/me', {
+        const res = await fetch('/admission_3/api/me', {
           headers: { Authorization: `Bearer ${accessToken}` }
         });
         const json = await res.json();
@@ -91,7 +91,7 @@
       const userId = data?.user?.id || null;
 
       try {
-        await fetch('/api/staff-applications', {
+        await fetch('/admission_3/api/staff-applications', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -155,7 +155,7 @@
           }
         }
       } catch (e) {}
-      window.location.replace('/login.html?message=You%20have%20been%20logged%20out.');
+      window.location.replace('login.html?message=You%20have%20been%20logged%20out.');
     },
 
     async getSession() {
@@ -167,7 +167,7 @@
 
     async requireAuth() {
       const session = await this.getSession();
-      if (!session) window.location.replace('/login.html');
+      if (!session) window.location.replace('login.html');
       return session;
     }
   };

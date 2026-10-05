@@ -10,7 +10,19 @@ function debounce(func, wait) {
 }
 window.debounce = debounce;
 
-const API_BASE = '/api';
+// Derive the API base path from the <base> tag injected by the server when BASE_PATH is set.
+// When running locally (no BASE_PATH in .env), no <base> tag is injected → default to '/api'.
+// When deployed under a sub-path (e.g. /admission_3), the server injects <base href="/admission_3/">
+// and we build '/admission_3/api' automatically — so this works in BOTH environments.
+const API_BASE = (() => {
+  const baseEl = document.querySelector('base[href]');
+  if (baseEl) {
+    // e.g. href="/admission_3/" → strip trailing slash → "/admission_3" + "/api"
+    const basePath = (new URL(baseEl.href)).pathname.replace(/\/+$/, '');
+    if (basePath && basePath !== '/') return basePath + '/admission_3/api';
+  }
+  return '/admission_3/api';
+})();
 
 async function authHeaders(extra = {}) {
   if (window.authReady) await window.authReady;
@@ -45,6 +57,52 @@ async function authFetch(url, options = {}) {
 }
 window.authFetch = authFetch;
 
+// Safely parses an API response. Never calls res.json() blindly, so an HTML/non-JSON
+// body (login page, SPA fallback, proxy error page) can't produce "Unexpected token '<'".
+// On success returns the parsed JSON (same as before). On failure throws an Error with
+// .status, .url, .contentType and .isHtml attached.
+async function parseApiResponse(res, fallbackMessage) {
+  const contentType = (res.headers.get('content-type') || '').toLowerCase();
+  const raw = await res.text();
+
+  let data = null;
+  let isJson = false;
+  if (raw) {
+    try {
+      data = JSON.parse(raw);
+      isJson = true;
+    } catch (e) { /* not JSON, handled below */ }
+  }
+
+  const fail = (message) => {
+    const error = new Error(message);
+    error.status = res.status;
+    error.url = res.url;
+    error.contentType = contentType;
+    error.isHtml = !isJson && (contentType.includes('text/html') || /^\s*</.test(raw));
+    return error;
+  };
+
+  if (!isJson) {
+    const preview = raw.slice(0, 200).replace(/\s+/g, ' ');
+    console.error(`Non-JSON API response [HTTP ${res.status}] ${res.url} (${contentType || 'no content-type'}):`, preview);
+
+    if (res.status === 401) throw fail('Authentication required. Please sign in again.');
+    if (res.status === 403) throw fail('You do not have permission to perform this action.');
+    if (res.status === 404) throw fail(`API endpoint not found (HTTP 404): ${res.url}`);
+    if (res.status >= 500) throw fail(`Server error (HTTP ${res.status}). Please try again.`);
+    if (res.ok) {
+      throw fail(`Server returned a web page instead of JSON (HTTP ${res.status}) for ${res.url}. The API route may be misconfigured or your session may have expired.`);
+    }
+    throw fail(`Unexpected server response (HTTP ${res.status}).`);
+  }
+
+  if (!res.ok || !data || !data.success) {
+    throw fail((data && data.error) || fallbackMessage);
+  }
+  return data;
+}
+
 const api = {
   async get(endpoint, params = {}) {
     const url = new URL(window.location.origin + API_BASE + endpoint);
@@ -60,10 +118,7 @@ const api = {
           'X-Client-Date': getLocalIsoDate()
         })
       });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Server request failed');
-      }
+      const data = await parseApiResponse(res, 'Server request failed');
       return data;
     } catch (err) {
       console.error(`API GET ${endpoint} Error:`, err);
@@ -81,10 +136,7 @@ const api = {
         }),
         body: JSON.stringify(body)
       });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Operation failed');
-      }
+      const data = await parseApiResponse(res, 'Operation failed');
       return data;
     } catch (err) {
       console.error(`API POST ${endpoint} Error:`, err);
@@ -102,10 +154,7 @@ const api = {
         }),
         body: JSON.stringify(body)
       });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Update failed');
-      }
+      const data = await parseApiResponse(res, 'Update failed');
       return data;
     } catch (err) {
       console.error(`API PUT ${endpoint} Error:`, err);
@@ -120,10 +169,7 @@ const api = {
         headers: await authHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(body)
       });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Action failed');
-      }
+      const data = await parseApiResponse(res, 'Action failed');
       return data;
     } catch (err) {
       console.error(`API PATCH ${endpoint} Error:`, err);
@@ -142,10 +188,7 @@ const api = {
         method: 'DELETE',
         headers: await authHeaders({ 'Content-Type': 'application/json' })
       });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Delete failed');
-      }
+      const data = await parseApiResponse(res, 'Delete failed');
       return data;
     } catch (err) {
       console.error(`API DELETE ${endpoint} Error:`, err);
@@ -491,7 +534,7 @@ function openPrintReceiptModal(paymentData) {
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" onclick="closeModal('modal-print-receipt')">Close</button>
-          <button class="btn btn-primary" onclick="window.print()">
+          <button class="btn btn-primary" onclick="printVoucherContent('receipt-printable-content', 'Fee Money Receipt')">
             <span class="material-symbols-outlined" style="font-size: 1.1rem;">print</span>
             Print Voucher
           </button>
@@ -594,7 +637,7 @@ function openPrintExpenseReceiptModal(expenseData) {
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" onclick="closeModal('modal-print-expense-receipt')">Close</button>
-          <button class="btn btn-primary" onclick="window.print()">
+          <button class="btn btn-primary" onclick="printVoucherContent('expense-receipt-printable-content', 'Expense Payment Receipt')">
             <span class="material-symbols-outlined" style="font-size: 1.1rem;">print</span>
             Print Voucher
           </button>
@@ -798,7 +841,7 @@ async function fetchAndRenderDailyVoucher() {
 
   try {
     // FIX: use authFetch so the login token is sent (was raw fetch -> 401 Unauthorized)
-    const res = await authFetch(`/api/vouchers/daily?date=${encodeURIComponent(dateVal)}&type=${encodeURIComponent(typeVal)}`);
+    const res = await authFetch(`/admission_3/api/vouchers/daily?date=${encodeURIComponent(dateVal)}&type=${encodeURIComponent(typeVal)}`);
     if (!res.ok) {
       let msg = res.statusText;
       try { msg = (await res.json()).error || msg; } catch (e) { }
@@ -1255,7 +1298,7 @@ async function populateMonthlyVoucherYears(selectId = 'monthly-voucher-year') {
 
   try {
     // FIX: use authFetch so the login token is sent (was raw fetch -> 401 Unauthorized)
-    const res = await authFetch('/api/academic-years');
+    const res = await authFetch('/admission_3/api/academic-years');
     if (res.ok) {
       const ayData = await res.json();
       const ayList = Array.isArray(ayData) ? ayData : (ayData && Array.isArray(ayData.data) ? ayData.data : []);
@@ -1308,7 +1351,7 @@ async function fetchAndRenderMonthlyVoucher() {
 
   try {
     // FIX: use authFetch so the login token is sent (was raw fetch -> 401 Unauthorized)
-    const res = await authFetch(`/api/vouchers/monthly?year=${year}&month=${month}&type=${encodeURIComponent(type)}`);
+    const res = await authFetch(`/admission_3/api/vouchers/monthly?year=${year}&month=${month}&type=${encodeURIComponent(type)}`);
     if (!res.ok) {
       let msg = res.statusText;
       try { msg = (await res.json()).error || msg; } catch (e) { }
@@ -1768,7 +1811,7 @@ async function fetchAndRenderPaymentDailyVoucher() {
   try {
     // Type is ALWAYS 'payments' here - cannot be switched to expenses
     // FIX: use authFetch so the login token is sent (was raw fetch -> 401 Unauthorized)
-    const res = await authFetch(`/api/vouchers/daily?date=${encodeURIComponent(dateVal)}&type=payments`);
+    const res = await authFetch(`/admission_3/api/vouchers/daily?date=${encodeURIComponent(dateVal)}&type=payments`);
     if (!res.ok) {
       let msg = res.statusText;
       try { msg = (await res.json()).error || msg; } catch (e) { }
@@ -2070,7 +2113,7 @@ async function fetchAndRenderPaymentMonthlyVoucher() {
   try {
     // Type is ALWAYS 'payments' here - cannot be switched to expenses
     // FIX: use authFetch so the login token is sent (was raw fetch -> 401 Unauthorized)
-    const res = await authFetch(`/api/vouchers/monthly?year=${year}&month=${month}&type=payments`);
+    const res = await authFetch(`/admission_3/api/vouchers/monthly?year=${year}&month=${month}&type=payments`);
     if (!res.ok) {
       let msg = res.statusText;
       try { msg = (await res.json()).error || msg; } catch (e) { }
@@ -2400,7 +2443,7 @@ if (typeof document !== 'undefined') {
                     if (window.auth && typeof window.auth.signOut === 'function') {
                       await window.auth.signOut();
                     } else {
-                      window.location.replace('/login.html');
+                      window.location.replace('login.html');
                     }
                   }
                 });

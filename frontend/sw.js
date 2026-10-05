@@ -1,47 +1,42 @@
 // Service Worker for Coaching Center Management System
-const CACHE_NAME = 'coaching-center-cache-v1';
+const CACHE_NAME = 'coaching-center-cache-v2';
+const BASE = '/admission_3/frontend';
 
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/dashboard.html',
-  '/students.html',
-  '/student-details.html',
-  '/payments.html',
-  '/monthly-overview.html',
-  '/expenses.html',
-  '/reports.html',
-  '/settings.html',
-  '/dashboard',
-  '/students',
-  '/student-details',
-  '/payments',
-  '/monthly-overview',
-  '/expenses',
-  '/reports',
-  '/settings',
-  '/css/fonts.css',
-  '/css/global.css',
-  '/dashboard.css',
-  '/students.css',
-  '/student-details.css',
-  '/payments.css',
-  '/monthly-overview.css',
-  '/expenses.css',
-  '/reports.css',
-  '/settings.css',
-  '/js/api.js',
-  '/dashboard.js',
-  '/students.js',
-  '/student-details.js',
-  '/payments.js',
-  '/monthly-overview.js',
-  '/expenses.js',
-  '/reports.js',
-  '/settings.js',
-  '/manifest.json',
-  '/css/fonts/app-icon.svg',
-  '/css/fonts/material-symbols-outlined.woff2'
+  BASE + '/',
+  BASE + '/login.html',
+  BASE + '/dashboard.html',
+  BASE + '/students.html',
+  BASE + '/student-details.html',
+  BASE + '/payments.html',
+  BASE + '/monthly-overview.html',
+  BASE + '/expenses.html',
+  BASE + '/reports.html',
+  BASE + '/settings.html',
+  BASE + '/admin.html',
+  BASE + '/css/fonts.css',
+  BASE + '/css/global.css',
+  BASE + '/dashboard.css',
+  BASE + '/students.css',
+  BASE + '/student-details.css',
+  BASE + '/payments.css',
+  BASE + '/monthly-overview.css',
+  BASE + '/expenses.css',
+  BASE + '/reports.css',
+  BASE + '/settings.css',
+  BASE + '/js/api.js',
+  BASE + '/js/auth.js',
+  BASE + '/dashboard.js',
+  BASE + '/students.js',
+  BASE + '/student-details.js',
+  BASE + '/payments.js',
+  BASE + '/monthly-overview.js',
+  BASE + '/expenses.js',
+  BASE + '/reports.js',
+  BASE + '/settings.js',
+  BASE + '/manifest.json',
+  BASE + '/css/fonts/app-icon.svg',
+  BASE + '/css/fonts/material-symbols-outlined.woff2'
 ];
 
 self.addEventListener('install', (event) => {
@@ -80,7 +75,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // API calls: Network first, fall back to offline error or cached GET
-  if (url.pathname.startsWith('/api/')) {
+  if (url.pathname.startsWith('/admission_3/api/')) {
     if (request.method === 'GET') {
       event.respondWith(
         fetch(request)
@@ -111,8 +106,8 @@ self.addEventListener('fetch', (event) => {
         .catch(() => {
           return caches.match(request).then((cached) => {
             if (cached) return cached;
-            // Fallback to dashboard.html if specific page not cached
-            return caches.match('/dashboard.html');
+            // Fallback to login.html if specific page not cached
+            return caches.match(BASE + '/login.html');
           });
         })
     );

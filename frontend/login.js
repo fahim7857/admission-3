@@ -23,10 +23,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       const state = await window.authReady;
       if (state && state.session && state.role) {
         if (state.role === 'super_admin') {
-          window.location.replace('/admin.html');
+          window.location.replace('admin.html');
           return;
         } else if (state.role === 'staff') {
-          window.location.replace('/dashboard.html');
+          window.location.replace('dashboard.html');
           return;
         }
       }
@@ -46,9 +46,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       const authResult = await window.auth.signIn(email, password);
 
       if (authResult.role === 'super_admin') {
-        window.location.replace('/admin.html');
+        window.location.replace('admin.html');
       } else {
-        window.location.replace('/dashboard.html');
+        window.location.replace('dashboard.html');
       }
     } catch (error) {
       showMessage(error.message || 'Unable to sign in.');

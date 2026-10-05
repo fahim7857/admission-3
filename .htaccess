@@ -1,0 +1,42 @@
+# ============================================================
+# Coaching Center – cPanel / Apache configuration
+# Place this file in public_html/admission_3/
+# ============================================================
+
+# Enable Passenger Node.js application
+PassengerEnabled on
+PassengerAppType node
+PassengerStartupFile server.js
+
+# ─── Block web access to sensitive directories and files ───
+
+# Block backend source code
+<DirectoryMatch "^/.*(backend|data|supabase)">
+  Require all denied
+</DirectoryMatch>
+
+# Block .env files
+<FilesMatch "^\.env">
+  Require all denied
+</FilesMatch>
+
+# Block SQLite database files
+<FilesMatch "\.db$">
+  Require all denied
+</FilesMatch>
+
+# Block .js files in backend/ (belt-and-suspenders)
+<FilesMatch "^(api|auth|database|staffAdmin)\.js$">
+  Require all denied
+</FilesMatch>
+
+# ─── Security headers ───
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set X-XSS-Protection "1; mode=block"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# ─── Redirect bare /admission_3 to /admission_3/frontend/login.html ───
+RedirectMatch ^/admission_3/?$ /admission_3/frontend/login.html

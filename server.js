@@ -1,4 +1,5 @@
 import express from 'express';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import 'dotenv/config';
@@ -6,10 +7,28 @@ import { initDatabase } from './backend/database.js';
 import { apiRouter } from './backend/api.js';
 import { staffAdminRouter } from './backend/staffAdmin.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// cPanel (Passenger) অ্যাপ চালালে সার্ভার নিজে থেকে চালু হবে
+const isDirectRun = process.argv[1] === __filename;
+const isHosted = Boolean(
+  process.env.PASSENGER_APP_ENV || process.env.IN_PASSENGER || process.env.START_SERVER
+);
+const shouldAutoStart = isDirectRun || isHosted || !process.versions.electron;
+
+// সাব-পাথ (যেমন /admission_3)। লোকাল বা সাবডোমেইনে খালি রাখুন।
+function normalizeBase(value) {
+  let b = String(value || '').trim();
+  if (!b || b === '/') return '';
+  if (!b.startsWith('/')) b = '/' + b;
+  return b.replace(/\/+$/, '');
+}
+const BASE_PATH = normalizeBase(process.env.BASE_PATH);
+
 export async function startServer() {
   const app = express();
-  const isDirectRun = process.argv[1] === fileURLToPath(import.meta.url);
-  const PORT = process.env.PORT || (isDirectRun ? 3000 : 0);
+  const PORT = process.env.PORT || (isDirectRun && !isHosted ? 3000 : 0);
 
   // Initialize SQLite database
   initDatabase();
@@ -17,14 +36,33 @@ export async function startServer() {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
-  // API routes FIRST (Supabase staff/admin routes before the general API router)
-  app.use('/api', staffAdminRouter);
-  app.use('/api', apiRouter);
-
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
   const frontendPath = path.join(__dirname, 'frontend');
-  app.use(express.static(frontendPath));
+
+  // HTML পেজ পাঠানো। BASE_PATH থাকলে <base> ট্যাগ ও fetch শিম ঢোকানো হয়।
+  function sendPage(res, page) {
+    const file = path.join(frontendPath, `${page}.html`);
+    if (!BASE_PATH) return res.sendFile(file);
+
+    fs.readFile(file, 'utf8', (err, html) => {
+      if (err) return res.status(404).send('Page not found');
+      const inject =
+        `<base href="${BASE_PATH}/">` +
+        `<script>(function(){var B="${BASE_PATH}";var f=window.fetch;` +
+        `window.fetch=function(u,o){if(typeof u==="string"&&u.charAt(0)==="/"&&u.charAt(1)!=="/"&&u.indexOf(B+"/")!==0){u=B+u;}return f.call(this,u,o);};})();</script>`;
+      const out = /<head[^>]*>/i.test(html)
+        ? html.replace(/<head[^>]*>/i, m => m + inject)
+        : inject + html;
+      res.type('html').send(out);
+    });
+  }
+
+  const router = express.Router();
+
+  // API routes FIRST (Supabase staff/admin routes before the general API router)
+  router.use('/api', staffAdminRouter);
+  router.use('/api', apiRouter);
+
+  router.use(express.static(frontendPath));
 
   // Explicit page routes
   const pages = [
@@ -43,23 +81,27 @@ export async function startServer() {
   ];
 
   pages.forEach(page => {
-    app.get(`/${page}`, (req, res) => {
-      res.sendFile(path.join(frontendPath, `${page}.html`));
-    });
-    app.get(`/${page}.html`, (req, res) => {
-      res.sendFile(path.join(frontendPath, `${page}.html`));
-    });
+    router.get(`/${page}`, (req, res) => sendPage(res, page));
+    router.get(`/${page}.html`, (req, res) => sendPage(res, page));
   });
 
   // Root -> login page
-  app.get('/', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'login.html'));
-  });
+  router.get('/', (req, res) => sendPage(res, 'login'));
+
+  // Serve frontend files at /frontend path so /admission_3/frontend/*.html works
+  // (critical when the app root is moved outside public_html)
+  router.use('/frontend', express.static(frontendPath));
 
   // Fallback for any other route
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'login.html'));
-  });
+  router.get('*', (req, res) => sendPage(res, 'login'));
+
+  if (BASE_PATH) {
+    // /admission_3 -> /admission_3/
+    app.get(BASE_PATH, (req, res) => res.redirect(301, BASE_PATH + '/'));
+    app.use(BASE_PATH, router);
+  }
+  // Passenger প্রিফিক্স কেটে দিলেও যেন কাজ করে
+  app.use('/', router);
 
   return new Promise((resolve) => {
     const server = app.listen(PORT, process.env.HOST || '0.0.0.0', () => {
@@ -70,7 +112,7 @@ export async function startServer() {
   });
 }
 
-// If run directly via node server.js
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+// If run directly via node server.js, or hosted under cPanel/Passenger
+if (shouldAutoStart) {
   startServer();
 }

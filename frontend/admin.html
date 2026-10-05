@@ -545,18 +545,18 @@
       try {
         authState = await window.authReady;
       } catch (e) {
-        window.location.replace('/login.html');
+        window.location.replace('login.html');
         return;
       }
 
       if (!authState || !authState.session) {
-        window.location.replace('/login.html');
+        window.location.replace('login.html');
         return;
       }
 
       if (authState.role !== 'super_admin') {
         // Forbidden for staff and unauthorized roles
-        window.location.replace('/dashboard.html');
+        window.location.replace('dashboard.html');
         return;
       }
 
@@ -749,11 +749,11 @@
         } catch (err) {
           console.error('Fetch applications error:', err);
           if (err.status === 401) {
-            window.location.replace('/login.html');
+            window.location.replace('login.html');
             return;
           }
           if (err.status === 403) {
-            window.location.replace('/dashboard.html');
+            window.location.replace('dashboard.html');
             return;
           }
           tableBody.innerHTML = `

@@ -71,4 +71,12 @@ set role = excluded.role;
 
 -- 4. Security: no public policy can read, approve, reject, or mutate reviewed
 -- applications. The server uses SUPABASE_SERVICE_ROLE_KEY for those actions;
--- that key must never be exposed to the browser.
+-- new super admin set korar sql
+INSERT INTO public.user_roles (user_id, role)
+SELECT id, 'super_admin'
+FROM auth.users
+WHERE lower(email) = lower('newemail@example.com')
+ON CONFLICT (user_id)
+DO UPDATE SET role = 'super_admin';
+--staff application zero korar sql code
+Shaafa2228
