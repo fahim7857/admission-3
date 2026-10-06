@@ -22,11 +22,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const kpiMonthlyTitle = document.getElementById('kpiMonthlyTitle');
   const kpiMonthSub = document.getElementById('kpiMonthSub');
 
-  // DOM Elements - Payment Summary Strip
-  const summaryTodayPayment = document.getElementById('summaryTodayPayment');
-  const summaryMonthLabel = document.getElementById('summaryMonthLabel');
-  const summaryMonthPayment = document.getElementById('summaryMonthPayment');
-  const summaryOverallPayment = document.getElementById('summaryOverallPayment');
+  // DOM Elements - Teacher Monthly Work & Payment Summary
+  const summaryTeacherFilter = document.getElementById('summaryTeacherFilter');
+  const workSummaryClasses = document.getElementById('workSummaryClasses');
+  const workSummaryKhatas = document.getElementById('workSummaryKhatas');
+  const workSummaryGuards = document.getElementById('workSummaryGuards');
+  const workSummaryPayment = document.getElementById('workSummaryPayment');
+  const workSummaryClassesSub = document.getElementById('workSummaryClassesSub');
+  const workSummaryKhatasSub = document.getElementById('workSummaryKhatasSub');
+  const workSummaryGuardsSub = document.getElementById('workSummaryGuardsSub');
+  const workSummaryPaymentSub = document.getElementById('workSummaryPaymentSub');
   const footMonthName = document.getElementById('footMonthName');
   const footMonthTotal = document.getElementById('footMonthTotal');
 
@@ -214,11 +219,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  let currentSelectedTeacherId = '';
+
+  if (summaryTeacherFilter) {
+    summaryTeacherFilter.addEventListener('change', (e) => {
+      currentSelectedTeacherId = e.target.value;
+      loadPaymentSummary(paymentMonthFilter ? paymentMonthFilter.value : currentSelectedMonth, currentSelectedTeacherId);
+    });
+  }
+
   if (paymentMonthFilter) {
     paymentMonthFilter.addEventListener('change', (e) => {
       const selectedMonth = e.target.value;
       if (selectedMonth) {
-        loadPaymentSummary(selectedMonth);
+        currentSelectedMonth = selectedMonth;
+        loadPaymentSummary(selectedMonth, summaryTeacherFilter ? summaryTeacherFilter.value : currentSelectedTeacherId);
       }
     });
   }
@@ -232,14 +247,21 @@ document.addEventListener('DOMContentLoaded', () => {
     payTeacherBtn.addEventListener('click', handlePayTeacherFromDetailModal);
   }
 
-  // Initial load
-  loadAllData();
+  // Initial load: wait for auth, then retry a couple of times if the first attempt fails
+  (async () => {
+    if (window.authReady) { try { await window.authReady; } catch (e) { /* handled by api client */ } }
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if (attempt > 0) await new Promise(r => setTimeout(r, 1500 * attempt));
+      const ok = await loadAllData(attempt < 2); // only show the error toast on the final attempt
+      if (ok) return;
+    }
+  })();
 
   // ====================================================
   // DATA LOADING FUNCTIONS
   // ====================================================
 
-  async function loadAllData() {
+  async function loadAllData(silent = false) {
     try {
       const [tRes, pRes] = await Promise.all([
         apiClient.get('/teachers'),
@@ -258,9 +280,11 @@ document.addEventListener('DOMContentLoaded', () => {
         loadDashboardSummary(),
         loadPaymentSummary(currentSelectedMonth)
       ]);
+      return true;
     } catch (error) {
       console.error('Failed to load teacher data:', error);
-      notify('Unable to load teachers: ' + (error.message || 'Check database connection'), 'error');
+      if (!silent) notify('Unable to load teachers: ' + (error.message || 'Check database connection'), 'error');
+      return false;
     }
   }
 
@@ -278,9 +302,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  async function loadPaymentSummary(month = '') {
+  async function loadPaymentSummary(month = '', teacherId = '') {
     try {
-      const queryParam = month ? `?month=${encodeURIComponent(month)}` : '';
+      const m = month || currentSelectedMonth || '';
+      const tId = teacherId !== undefined && teacherId !== null ? teacherId : (summaryTeacherFilter ? summaryTeacherFilter.value : '');
+      const queryParams = [];
+      if (m) queryParams.push(`month=${encodeURIComponent(m)}`);
+      if (tId) queryParams.push(`teacher_id=${encodeURIComponent(tId)}`);
+      const queryParam = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
+
       const res = await apiClient.get(`/teachers/payment-summary${queryParam}`);
 
       if (!res || !res.success || !res.data) return;
@@ -293,12 +323,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (kpiMonthlyTitle) kpiMonthlyTitle.textContent = `${d.selectedMonthName} Paid`;
       if (kpiMonthSub) kpiMonthSub.textContent = `Total paid in ${d.selectedMonthName}`;
 
-      // Update Payment Summary Strip
-      if (summaryTodayPayment) summaryTodayPayment.textContent = `৳${(d.todayPaid || 0).toLocaleString()}`;
-      if (summaryMonthLabel) summaryMonthLabel.textContent = `${d.selectedMonthName} Total Paid`;
-      if (summaryMonthPayment) summaryMonthPayment.textContent = `৳${(d.monthPaid || 0).toLocaleString()}`;
-      if (summaryOverallPayment) summaryOverallPayment.textContent = `৳${(d.overallPaid || 0).toLocaleString()}`;
-
       // Update Month Selector dropdown
       if (paymentMonthFilter && d.availableMonths && d.availableMonths.length > 0) {
         const currentVal = paymentMonthFilter.value || d.selectedMonth;
@@ -307,31 +331,78 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
       }
 
+      // Update 4 Work Summary Cards
+      let classesVal = d.totalClasses || 0;
+      let khatasVal = d.totalKhatas || 0;
+      let guardsVal = d.totalGuards || 0;
+      let paymentVal = d.monthPaid || 0;
+
+      let teacherLabel = 'All Teachers';
+      if (tId && d.selectedTeacherSummary) {
+        classesVal = d.selectedTeacherSummary.classes_taken || 0;
+        khatasVal = d.selectedTeacherSummary.khatas_checked || 0;
+        guardsVal = d.selectedTeacherSummary.guard_duties || 0;
+        paymentVal = d.selectedTeacherSummary.total_paid || 0;
+        teacherLabel = d.selectedTeacherSummary.teacher_name || 'Selected Teacher';
+      } else if (tId) {
+        const found = (d.teachers || []).find(t => String(t.teacher_id) === String(tId));
+        if (found) {
+          classesVal = found.classes_taken || 0;
+          khatasVal = found.khatas_checked || 0;
+          guardsVal = found.guard_duties || 0;
+          paymentVal = found.total_paid || 0;
+          teacherLabel = found.teacher_name || 'Selected Teacher';
+        }
+      }
+
+      if (workSummaryClasses) workSummaryClasses.textContent = classesVal.toLocaleString();
+      if (workSummaryKhatas) workSummaryKhatas.textContent = khatasVal.toLocaleString();
+      if (workSummaryGuards) workSummaryGuards.textContent = guardsVal.toLocaleString();
+      if (workSummaryPayment) workSummaryPayment.textContent = `৳${paymentVal.toLocaleString()}`;
+
+      const subText = `${teacherLabel} • ${d.selectedMonthName}`;
+      if (workSummaryClassesSub) workSummaryClassesSub.textContent = subText;
+      if (workSummaryKhatasSub) workSummaryKhatasSub.textContent = subText;
+      if (workSummaryGuardsSub) workSummaryGuardsSub.textContent = subText;
+      if (workSummaryPaymentSub) workSummaryPaymentSub.textContent = subText;
+
       // Update Monthly Teacher Breakdown Table
-      renderMonthlyTeacherPaymentTable(d);
+      renderMonthlyTeacherPaymentTable(d, tId);
     } catch (e) {
       console.warn('Error loading teacher payment summary:', e);
     }
   }
 
-  function renderMonthlyTeacherPaymentTable(d) {
+  function renderMonthlyTeacherPaymentTable(d, tId = '') {
     if (!monthlyPaymentsTableBody) return;
 
-    if (footMonthName) footMonthName.textContent = d.selectedMonthName || 'Selected Month';
-    if (footMonthTotal) footMonthTotal.textContent = `৳${(d.monthPaid || 0).toLocaleString()}`;
+    let teacherLabel = 'Selected Month';
+    let filteredTeachers = d.teachers || [];
+    let footTotal = d.monthPaid || 0;
 
-    if (!d.teachers || d.teachers.length === 0) {
+    if (tId) {
+      filteredTeachers = (d.teachers || []).filter(t => String(t.teacher_id) === String(tId));
+      if (filteredTeachers.length > 0) {
+        teacherLabel = filteredTeachers[0].teacher_name;
+        footTotal = filteredTeachers[0].total_paid || 0;
+      }
+    }
+
+    if (footMonthName) footMonthName.textContent = `${teacherLabel} • ${d.selectedMonthName || ''}`;
+    if (footMonthTotal) footMonthTotal.textContent = `৳${footTotal.toLocaleString()}`;
+
+    if (filteredTeachers.length === 0) {
       monthlyPaymentsTableBody.innerHTML = `
         <tr>
-          <td colspan="4" style="text-align: center; padding: 1.75rem; color: #64748b;">
-            No teacher payments recorded in <strong>${d.selectedMonthName}</strong>.
+          <td colspan="6" style="text-align: center; padding: 1.75rem; color: #64748b;">
+            No teacher work or payment records found in <strong>${d.selectedMonthName}</strong>.
           </td>
         </tr>
       `;
       return;
     }
 
-    monthlyPaymentsTableBody.innerHTML = d.teachers.map(t => `
+    monthlyPaymentsTableBody.innerHTML = filteredTeachers.map(t => `
       <tr>
         <td>
           <div style="font-weight: 700; color: #0f172a;">${t.teacher_name}</div>
@@ -339,12 +410,16 @@ document.addEventListener('DOMContentLoaded', () => {
         <td style="color: #475569;">
           ${t.teacher_phone ? t.teacher_phone : '<span style="color: #94a3b8;">N/A</span>'}
         </td>
-        <td style="text-align: center; font-weight: 600; color: #334155;">
-          <span class="badge-tag" style="background: #f1f5f9; color: #334155; font-size: 0.74rem;">
-            ${t.payment_count} ${t.payment_count === 1 ? 'Payment' : 'Payments'}
-          </span>
+        <td style="text-align: center; font-weight: 700; color: #0284c7;">
+          ${(t.classes_taken || 0).toLocaleString()}
         </td>
-        <td style="text-align: right; font-weight: 700; color: #16a34a; font-size: 0.88rem;">
+        <td style="text-align: center; font-weight: 700; color: #d97706;">
+          ${(t.khatas_checked || 0).toLocaleString()}
+        </td>
+        <td style="text-align: center; font-weight: 700; color: #4f46e5;">
+          ${(t.guard_duties || 0).toLocaleString()}
+        </td>
+        <td style="text-align: right; font-weight: 700; color: #16a34a; font-size: 0.90rem;">
           ৳${(t.total_paid || 0).toLocaleString()}
         </td>
       </tr>
@@ -352,11 +427,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function populateTeacherDropdowns() {
-    const selects = [activityTeacherSelect, paymentTeacherFilter];
+    const selects = [activityTeacherSelect, paymentTeacherFilter, summaryTeacherFilter];
     selects.forEach(sel => {
       if (!sel) return;
       const currentVal = sel.value;
-      const isFilter = sel === paymentTeacherFilter;
+      const isFilter = sel === paymentTeacherFilter || sel === summaryTeacherFilter;
 
       sel.innerHTML = isFilter
         ? '<option value="">All Teachers</option>'
@@ -675,6 +750,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Pay button inside the teacher detail modal: pays the selected teacher's outstanding balance
+  async function handlePayTeacherFromDetailModal() {
+    if (!selectedTeacherForDetail) return;
+    const id = selectedTeacherForDetail.id;
+    await handleDirectPayTeacher(id);
+    await openTeacherDetailModal(id); // refresh the ledger/payable shown in the modal
+  }
+
   function idFromParam(id) {
     return typeof id === 'number' ? id : parseInt(id, 10);
   }
@@ -878,24 +961,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Advance Statement and Advance Payment modal bindings
-  const openAdvanceStatementBtn = document.getElementById('openAdvanceStatementBtn');
-  if (openAdvanceStatementBtn) {
-    openAdvanceStatementBtn.addEventListener('click', () => {
-      const dateInput = document.getElementById('advanceStatementDateInput');
-      if (dateInput && !dateInput.value) {
-        dateInput.value = getTodayDhakaDate();
-      }
-      showModal('teacherAdvanceStatementModal');
-      fetchAndRenderTeacherAdvanceStatement();
-    });
-  }
 
-  const closeAdvanceStatementBtn = document.getElementById('closeAdvanceStatementBtn');
-  const closeAdvanceStatementModalBtn = document.getElementById('closeAdvanceStatementModalBtn');
-  [closeAdvanceStatementBtn, closeAdvanceStatementModalBtn].forEach(el => {
-    if (el) el.addEventListener('click', () => hideModal('teacherAdvanceStatementModal'));
-  });
 
   const openTeacherAdvanceModalBtn = document.getElementById('openTeacherAdvanceModalBtn');
   if (openTeacherAdvanceModalBtn) {
@@ -923,47 +989,6 @@ document.addEventListener('DOMContentLoaded', () => {
     teacherAdvanceForm.addEventListener('submit', handleSaveTeacherAdvance);
   }
 });
-
-async function fetchAndRenderTeacherAdvanceStatement() {
-  const container = document.getElementById('advanceStatementTableBody');
-  const totalEl = document.getElementById('advanceStatementTotalAmount');
-  const dateDisplay = document.getElementById('statementDateDisplay');
-  const dateInput = document.getElementById('advanceStatementDateInput');
-
-  if (!container) return;
-  const dateVal = dateInput ? dateInput.value : getTodayDhakaDate();
-  if (dateDisplay) dateDisplay.textContent = `Date: ${formatDate(dateVal)}`;
-
-  container.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 1.5rem; color: #64748b;">Loading advance statement...</td></tr>`;
-
-  try {
-    const res = await apiClient.get(`/teachers/advance-statement?date=${encodeURIComponent(dateVal)}`);
-    if (!res || !res.success) throw new Error(res?.error || 'Failed to load advance statement');
-
-    const payments = res.payments || [];
-    const totalAmount = res.totalAmount || 0;
-
-    if (totalEl) totalEl.textContent = `৳${totalAmount.toLocaleString()}`;
-
-    if (payments.length === 0) {
-      container.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 1.5rem; color: #64748b;">No teacher advance or payment records found for ${formatDate(dateVal)}.</td></tr>`;
-      return;
-    }
-
-    container.innerHTML = payments.map(p => `
-      <tr style="border-bottom: 1px solid #f1f5f9;">
-        <td style="padding: 8px; color: #475569; white-space: nowrap;">${escapeHtml(p.date || p.payment_date || dateVal)}</td>
-        <td style="padding: 8px; font-weight: 700; color: #0f172a;">${escapeHtml(p.teacher_name)}</td>
-        <td style="padding: 8px; color: #0284c7; font-weight: 600;">${escapeHtml(p.payment_type || 'Advance / Payment')}</td>
-        <td style="padding: 8px; color: #475569; font-size: 0.78rem;">${escapeHtml(p.description || p.note || 'Advance / Payment')}</td>
-        <td style="padding: 8px; text-align: right; font-weight: 700; color: #16a34a;">৳${(p.amount || 0).toLocaleString()}</td>
-      </tr>
-    `).join('');
-  } catch (err) {
-    console.error('Error loading advance statement:', err);
-    container.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 1.5rem; color: #dc2626;">Error: ${escapeHtml(err.message)}</td></tr>`;
-  }
-}
 
 async function handleSaveTeacherAdvance(e) {
   e.preventDefault();
@@ -1003,5 +1028,3 @@ async function handleSaveTeacherAdvance(e) {
     showFormError('teacherAdvanceFormError', err.message || 'Failed to post advance payment.');
   }
 }
-
-window.fetchAndRenderTeacherAdvanceStatement = fetchAndRenderTeacherAdvanceStatement;

@@ -2755,16 +2755,18 @@ apiRouter.get('/teachers/dashboard-summary', (req, res) => {
   }
 });
 
-// Teacher Payment Summary (Today, Monthly, Monthly Table & Filter)
+// Teacher Payment & Work Summary (Teacher-wise and Month-wise work and payment)
 apiRouter.get('/teachers/payment-summary', (req, res) => {
   try {
-    const today = getDhakaDate(); // e.g. '2026-09-28'
-    const todayMonth = today.substring(0, 7); // '2026-09'
+    const today = getDhakaDate(); // e.g. '2026-10-06'
+    const todayMonth = today.substring(0, 7); // '2026-10'
 
     // Selected month: query param or current month
     const selectedMonth = (req.query.month && /^\d{4}-\d{2}$/.test(req.query.month))
       ? req.query.month
       : todayMonth;
+
+    const teacherId = req.query.teacher_id ? parseInt(req.query.teacher_id, 10) : null;
 
     // 1. Today's Total Teacher Payment
     const todayPaidRow = db.prepare(`
@@ -2789,30 +2791,94 @@ apiRouter.get('/teachers/payment-summary', (req, res) => {
     `).get();
     const overallPaid = overallPaidRow ? overallPaidRow.total : 0;
 
-    // 4. Monthly Teacher-wise Payment Breakdown Table
-    const teacherRows = db.prepare(`
-      SELECT tp.teacher_id, t.name as teacher_name, t.phone as teacher_phone,
-             COALESCE(SUM(tp.amount), 0) as total_paid,
-             COUNT(tp.id) as payment_count
-      FROM teacher_payments tp
-      JOIN teachers t ON tp.teacher_id = t.id
-      WHERE tp.payment_date LIKE ?
-      GROUP BY tp.teacher_id, t.name, t.phone
-      ORDER BY total_paid DESC, t.name ASC
+    // 4. Monthly Teacher-wise Work & Payment Breakdown
+    const allTeachers = db.prepare('SELECT id, name, phone FROM teachers ORDER BY name ASC').all();
+
+    // Activities for the selected month aggregated by teacher
+    const activityRows = db.prepare(`
+      SELECT teacher_id,
+             COALESCE(SUM(classes_taken), 0) as classes_taken,
+             COALESCE(SUM(khatas_checked), 0) as khatas_checked,
+             COALESCE(SUM(guard_duties), 0) as guard_duties,
+             COALESCE(SUM(daily_total), 0) as monthly_earned
+      FROM teacher_activities
+      WHERE activity_date LIKE ?
+      GROUP BY teacher_id
     `).all(`${selectedMonth}%`);
 
-    // Format month name (e.g. '2026-09' -> 'September 2026')
+    const activityMap = new Map();
+    activityRows.forEach(a => activityMap.set(a.teacher_id, a));
+
+    // Payments for the selected month aggregated by teacher
+    const paymentRows = db.prepare(`
+      SELECT teacher_id,
+             COALESCE(SUM(amount), 0) as total_paid,
+             COUNT(id) as payment_count
+      FROM teacher_payments
+      WHERE payment_date LIKE ?
+      GROUP BY teacher_id
+    `).all(`${selectedMonth}%`);
+
+    const paymentMap = new Map();
+    paymentRows.forEach(p => paymentMap.set(p.teacher_id, p));
+
+    let totalClasses = 0;
+    let totalKhatas = 0;
+    let totalGuards = 0;
+
+    const teacherBreakdown = allTeachers.map(t => {
+      const act = activityMap.get(t.id) || { classes_taken: 0, khatas_checked: 0, guard_duties: 0, monthly_earned: 0 };
+      const pay = paymentMap.get(t.id) || { total_paid: 0, payment_count: 0 };
+
+      totalClasses += act.classes_taken;
+      totalKhatas += act.khatas_checked;
+      totalGuards += act.guard_duties;
+
+      return {
+        teacher_id: t.id,
+        teacher_name: t.name,
+        teacher_phone: t.phone || '',
+        classes_taken: act.classes_taken,
+        khatas_checked: act.khatas_checked,
+        guard_duties: act.guard_duties,
+        monthly_earned: act.monthly_earned,
+        total_paid: pay.total_paid,
+        payment_count: pay.payment_count
+      };
+    });
+
+    // If teacher_id is provided, calculate totals specifically for that teacher
+    let selectedTeacherSummary = null;
+    if (teacherId) {
+      const tData = teacherBreakdown.find(t => t.teacher_id === teacherId);
+      if (tData) {
+        selectedTeacherSummary = {
+          teacher_id: tData.teacher_id,
+          teacher_name: tData.teacher_name,
+          classes_taken: tData.classes_taken,
+          khatas_checked: tData.khatas_checked,
+          guard_duties: tData.guard_duties,
+          total_paid: tData.total_paid
+        };
+      }
+    }
+
+    // Format month name (e.g. '2026-10' -> 'October 2026')
     const [yearStr, monthStr] = selectedMonth.split('-');
     const dateObj = new Date(parseInt(yearStr, 10), parseInt(monthStr, 10) - 1, 1);
     const selectedMonthName = dateObj.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
-    // 5. Available months for the filter (from DB, plus current and recent 12 months)
+    // 5. Available months for the filter (from DB activities and payments)
     const dbMonths = db.prepare(`
       SELECT DISTINCT substr(payment_date, 1, 7) as month_val
       FROM teacher_payments
       WHERE payment_date IS NOT NULL AND payment_date != ''
+      UNION
+      SELECT DISTINCT substr(activity_date, 1, 7) as month_val
+      FROM teacher_activities
+      WHERE activity_date IS NOT NULL AND activity_date != ''
       ORDER BY month_val DESC
-    `).all().map(r => r.month_val);
+    `).all().map(r => r.month_val).filter(Boolean);
 
     const monthSet = new Set(dbMonths);
     monthSet.add(todayMonth);
@@ -2845,7 +2911,11 @@ apiRouter.get('/teachers/payment-summary', (req, res) => {
         selectedMonthName,
         monthPaid,
         overallPaid,
-        teachers: teacherRows,
+        totalClasses,
+        totalKhatas,
+        totalGuards,
+        selectedTeacherSummary,
+        teachers: teacherBreakdown,
         availableMonths
       }
     });
@@ -3266,15 +3336,42 @@ apiRouter.get('/teachers/advance-statement', (req, res) => {
 // ----------------------------------------------------
 apiRouter.get('/staff', (req, res) => {
   try {
+    const month = req.query.month; // e.g. '2026-10' or '2026-09'
     const staffList = db.prepare('SELECT * FROM staff ORDER BY name ASC').all();
+    
+    let totalMonthPaid = 0;
+    let totalAllTimePaid = 0;
+
     const results = staffList.map(st => {
-      const paidRow = db.prepare('SELECT COALESCE(SUM(amount), 0) as total FROM staff_payments WHERE staff_id = ?').get(st.id);
+      let paidForMonth = 0;
+      if (month && /^\d{4}-\d{2}$/.test(month)) {
+        const mRow = db.prepare('SELECT COALESCE(SUM(amount), 0) as total FROM staff_payments WHERE staff_id = ? AND payment_date LIKE ?').get(st.id, `${month}%`);
+        paidForMonth = mRow ? mRow.total : 0;
+      } else {
+        const mRow = db.prepare('SELECT COALESCE(SUM(amount), 0) as total FROM staff_payments WHERE staff_id = ?').get(st.id);
+        paidForMonth = mRow ? mRow.total : 0;
+      }
+
+      const allRow = db.prepare('SELECT COALESCE(SUM(amount), 0) as total FROM staff_payments WHERE staff_id = ?').get(st.id);
+      const allTime = allRow ? allRow.total : 0;
+
+      totalMonthPaid += paidForMonth;
+      totalAllTimePaid += allTime;
+
       return {
         ...st,
-        total_paid: paidRow.total || 0
+        total_paid: paidForMonth,
+        all_time_paid: allTime
       };
     });
-    res.json({ success: true, staff: results });
+
+    res.json({
+      success: true,
+      staff: results,
+      month: month || null,
+      total_month_paid: totalMonthPaid,
+      total_all_time_paid: totalAllTimePaid
+    });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }

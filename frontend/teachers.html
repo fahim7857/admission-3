@@ -131,11 +131,6 @@
               <span class="material-symbols-outlined" style="font-size: 1.1rem;">payments</span>
               Teacher Advance Payment
             </button>
-            <button class="btn btn-secondary btn-sm" id="openAdvanceStatementBtn"
-              style="background: #f0fdf4; color: #16a34a; border-color: #bbf7d0;">
-              <span class="material-symbols-outlined" style="font-size: 1.1rem;">print</span>
-              Daily Advance Statement
-            </button>
             <button class="btn btn-secondary btn-sm" id="openActivityModalBtn">
               <span class="material-symbols-outlined" style="font-size: 1.1rem;">add_task</span>
               Record Today's Work
@@ -253,14 +248,18 @@
                 <h3
                   style="font-size: 0.90rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 0.4rem;">
                   <span class="material-symbols-outlined" style="color: #9333ea; font-size: 1.2rem;">summarize</span>
-                  Teacher Payment Summary
+                  Teacher Monthly Work & Payment Summary
                 </h3>
-                <p style="font-size: 0.75rem; color: #64748b; margin-top: 0.15rem;">Calculated from actual teacher
-                  payment vouchers (separate from current payable).</p>
+                <p style="font-size: 0.75rem; color: #64748b; margin-top: 0.15rem;">Teacher-wise and month-wise summary of classes, khatas, guard duties, and total payments.</p>
               </div>
               <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
-                <label for="paymentMonthFilter" style="font-size: 0.78rem; font-weight: 600; color: #475569;">Select
-                  Month:</label>
+                <label for="summaryTeacherFilter" style="font-size: 0.78rem; font-weight: 600; color: #475569;">Teacher:</label>
+                <select id="summaryTeacherFilter" class="form-control"
+                  style="padding: 0.35rem 0.75rem; font-size: 0.82rem; font-weight: 600; border: 1px solid #cbd5e1; border-radius: 6px; background: white; cursor: pointer;">
+                  <option value="">All Teachers</option>
+                </select>
+
+                <label for="paymentMonthFilter" style="font-size: 0.78rem; font-weight: 600; color: #475569;">Month:</label>
                 <select id="paymentMonthFilter" class="form-control"
                   style="padding: 0.35rem 0.75rem; font-size: 0.82rem; font-weight: 600; border: 1px solid #cbd5e1; border-radius: 6px; background: white; cursor: pointer;">
                   <option value="">Loading months...</option>
@@ -268,51 +267,54 @@
               </div>
             </div>
 
-            <!-- Payment Stat Strip -->
+            <!-- Teacher Monthly Work & Payment Summary (4 Values Displayed Together) -->
             <div
-              style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; padding: 1rem; background: #fafafa; border-bottom: 1px solid var(--outline-variant);"
+              style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; padding: 1rem; background: #fafafa; border-bottom: 1px solid var(--outline-variant);"
               id="paymentSummaryStatsGrid">
               <div style="background: white; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid #e2e8f0;">
-                <div style="font-size: 0.70rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Today's
-                  Teacher Payment</div>
-                <div style="font-size: 1.25rem; font-weight: 700; color: #16a34a; margin-top: 0.2rem;"
-                  id="summaryTodayPayment">৳0</div>
+                <div style="font-size: 0.70rem; color: #0284c7; font-weight: 700; text-transform: uppercase;">Total Classes Taken</div>
+                <div style="font-size: 1.35rem; font-weight: 800; color: #0284c7; margin-top: 0.2rem;" id="workSummaryClasses">0</div>
+                <div style="font-size: 0.72rem; color: #64748b; margin-top: 0.1rem;" id="workSummaryClassesSub">Classes in month</div>
               </div>
               <div style="background: white; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid #e2e8f0;">
-                <div style="font-size: 0.70rem; color: #9333ea; font-weight: 600; text-transform: uppercase;"
-                  id="summaryMonthLabel">Selected Month Payment</div>
-                <div style="font-size: 1.25rem; font-weight: 700; color: #9333ea; margin-top: 0.2rem;"
-                  id="summaryMonthPayment">৳0</div>
+                <div style="font-size: 0.70rem; color: #d97706; font-weight: 700; text-transform: uppercase;">Total Khata / Copies Checked</div>
+                <div style="font-size: 1.35rem; font-weight: 800; color: #d97706; margin-top: 0.2rem;" id="workSummaryKhatas">0</div>
+                <div style="font-size: 0.72rem; color: #64748b; margin-top: 0.1rem;" id="workSummaryKhatasSub">Copies in month</div>
               </div>
               <div style="background: white; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid #e2e8f0;">
-                <div style="font-size: 0.70rem; color: #0284c7; font-weight: 600; text-transform: uppercase;">Overall
-                  Teacher Payments</div>
-                <div style="font-size: 1.25rem; font-weight: 700; color: #0284c7; margin-top: 0.2rem;"
-                  id="summaryOverallPayment">৳0</div>
+                <div style="font-size: 0.70rem; color: #4f46e5; font-weight: 700; text-transform: uppercase;">Total Exam Guard Duties</div>
+                <div style="font-size: 1.35rem; font-weight: 800; color: #4f46e5; margin-top: 0.2rem;" id="workSummaryGuards">0</div>
+                <div style="font-size: 0.72rem; color: #64748b; margin-top: 0.1rem;" id="workSummaryGuardsSub">Guard duties in month</div>
+              </div>
+              <div style="background: white; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <div style="font-size: 0.70rem; color: #16a34a; font-weight: 700; text-transform: uppercase;">Total Payment</div>
+                <div style="font-size: 1.35rem; font-weight: 800; color: #16a34a; margin-top: 0.2rem;" id="workSummaryPayment">৳0</div>
+                <div style="font-size: 0.72rem; color: #64748b; margin-top: 0.1rem;" id="workSummaryPaymentSub">Paid in month</div>
               </div>
             </div>
 
-            <!-- Monthly Teacher Payment Table -->
+            <!-- Monthly Teacher Work & Payment Table -->
             <div class="table-responsive">
-              <table class="data-table" style="min-width: 600px;">
+              <table class="data-table" style="min-width: 650px;">
                 <thead>
                   <tr>
-                    <th style="width: 40%;">Teacher</th>
-                    <th style="width: 25%;">Contact Phone</th>
-                    <th style="width: 15%; text-align: center;">Payments Count</th>
-                    <th style="width: 20%; text-align: right;">Total Paid</th>
+                    <th style="width: 25%;">Teacher Name</th>
+                    <th style="width: 15%;">Contact Phone</th>
+                    <th style="width: 15%; text-align: center;">Classes Taken</th>
+                    <th style="width: 15%; text-align: center;">Khata Checked</th>
+                    <th style="width: 15%; text-align: center;">Exam Guard</th>
+                    <th style="width: 15%; text-align: right;">Total Payment</th>
                   </tr>
                 </thead>
                 <tbody id="monthlyPaymentsTableBody">
                   <tr>
-                    <td colspan="4" style="text-align: center; padding: 1.5rem; color: #64748b;">Loading monthly payment
-                      breakdown...</td>
+                    <td colspan="6" style="text-align: center; padding: 1.5rem; color: #64748b;">Loading monthly summary...</td>
                   </tr>
                 </tbody>
                 <tfoot id="monthlyPaymentsTableFoot"
                   style="background: #f8fafc; font-weight: 700; border-top: 2px solid #e2e8f0;">
                   <tr>
-                    <td colspan="3" style="text-align: right; padding: 0.65rem 0.75rem; color: #334155;">
+                    <td colspan="5" style="text-align: right; padding: 0.65rem 0.75rem; color: #334155;">
                       <span id="footMonthName">Selected Month</span> Total:
                     </td>
                     <td style="text-align: right; padding: 0.65rem 0.75rem; color: #16a34a; font-size: 0.95rem;"
@@ -628,72 +630,7 @@
     </div>
   </div>
 
-  <!-- Daily Teacher Advance Statement Modal -->
-  <div id="teacherAdvanceStatementModal" class="modal-overlay">
-    <div class="modal-dialog" style="max-width: 700px;">
-      <div class="modal-header">
-        <h3 class="modal-title" style="display: flex; align-items: center; gap: 0.4rem;">
-          <span class="material-symbols-outlined" style="color: #16a34a;">print</span>
-          Daily Teacher Advance & Payment Statement
-        </h3>
-        <button type="button" class="modal-close" id="closeAdvanceStatementModalBtn"
-          aria-label="Close modal">&times;</button>
-      </div>
-      <div class="modal-body" style="gap: 1rem;">
-        <div
-          style="display: flex; gap: 0.75rem; align-items: center; background: #f8fafc; padding: 0.75rem; border-radius: 8px;">
-          <label style="font-size: 0.82rem; font-weight: 600; color: #334155;">Select Date:</label>
-          <input type="date" id="advanceStatementDateInput" class="form-control" style="width: auto;"
-            onchange="fetchAndRenderTeacherAdvanceStatement()">
-        </div>
 
-        <div id="advanceStatementPrintable"
-          style="background: white; padding: 1.25rem; border: 1px solid #e2e8f0; border-radius: 8px;">
-          <div style="text-align: center; margin-bottom: 1rem;">
-            <h2 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0;">COACHING CENTER MANAGEMENT
-              SYSTEM</h2>
-            <div style="font-size: 0.85rem; font-weight: 700; color: #16a34a; margin-top: 0.2rem;">DAILY TEACHER ADVANCE
-              & PAYMENT STATEMENT</div>
-            <div style="font-size: 0.78rem; color: #64748b; margin-top: 0.15rem;" id="statementDateDisplay">Date: —
-            </div>
-          </div>
-
-          <table class="data-table" style="font-size: 0.8rem; width: 100%; border-collapse: collapse;">
-            <thead>
-              <tr style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
-                <th style="padding: 8px; text-align: left;">Date</th>
-                <th style="padding: 8px; text-align: left;">Teacher Name</th>
-                <th style="padding: 8px; text-align: left;">Payment/Advance Type</th>
-                <th style="padding: 8px; text-align: left;">Description</th>
-                <th style="padding: 8px; text-align: right;">Amount (৳)</th>
-              </tr>
-            </thead>
-            <tbody id="advanceStatementTableBody">
-              <tr>
-                <td colspan="5" style="text-align: center; padding: 1.5rem; color: #64748b;">Loading statement data...
-                </td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr style="border-top: 2px solid #cbd5e1; font-weight: 700; background: #f8fafc;">
-                <td colspan="4" style="padding: 10px; text-align: right;">Total:</td>
-                <td style="padding: 10px; text-align: right; color: #16a34a; font-size: 1rem;"
-                  id="advanceStatementTotalAmount">৳0</td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </div>
-      <div class="modal-footer" style="display: flex; justify-content: space-between;">
-        <button type="button" class="btn btn-secondary btn-sm" id="closeAdvanceStatementBtn">Close</button>
-        <button type="button" class="btn btn-primary btn-sm"
-          onclick="printVoucherContent('advanceStatementPrintable', 'Teacher Advance Statement')">
-          <span class="material-symbols-outlined" style="font-size: 1rem;">print</span>
-          Print Statement
-        </button>
-      </div>
-    </div>
-  </div>
 
   <script src="js/auth.js"></script>
   <script src="js/api.js"></script>
