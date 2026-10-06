@@ -988,43 +988,43 @@ document.addEventListener('DOMContentLoaded', () => {
   if (teacherAdvanceForm) {
     teacherAdvanceForm.addEventListener('submit', handleSaveTeacherAdvance);
   }
-});
 
-async function handleSaveTeacherAdvance(e) {
-  e.preventDefault();
-  clearFormError('teacherAdvanceFormError');
+  async function handleSaveTeacherAdvance(e) {
+    e.preventDefault();
+    clearFormError('teacherAdvanceFormError');
 
-  const teacherId = document.getElementById('advanceTeacherSelect').value;
-  const amount = parseFloat(document.getElementById('advanceAmountInput').value);
-  const paymentDate = document.getElementById('advanceDateInput').value;
-  const note = document.getElementById('advanceNoteInput').value.trim();
+    const teacherId = document.getElementById('advanceTeacherSelect').value;
+    const amount = parseFloat(document.getElementById('advanceAmountInput').value);
+    const paymentDate = document.getElementById('advanceDateInput').value;
+    const note = document.getElementById('advanceNoteInput').value.trim();
 
-  if (!teacherId) {
-    showFormError('teacherAdvanceFormError', 'Please select a teacher.');
-    return;
-  }
-  if (isNaN(amount) || amount <= 0) {
-    showFormError('teacherAdvanceFormError', 'Please enter a valid advance amount.');
-    return;
-  }
-
-  try {
-    const res = await apiClient.post(`/teachers/${teacherId}/pay`, {
-      amount,
-      payment_date: paymentDate || getTodayDhakaDate(),
-      note: note || 'Teacher Advance Payment'
-    });
-
-    if (res && res.success) {
-      notify(res.message || 'Advance payment posted successfully!', 'success');
-      hideModal('teacherAdvanceModal');
-      document.getElementById('teacherAdvanceForm').reset();
-      await loadAllData();
-    } else {
-      showFormError('teacherAdvanceFormError', res?.error || 'Failed to post advance payment.');
+    if (!teacherId) {
+      showFormError('teacherAdvanceFormError', 'Please select a teacher.');
+      return;
     }
-  } catch (err) {
-    console.error('Advance payment error:', err);
-    showFormError('teacherAdvanceFormError', err.message || 'Failed to post advance payment.');
+    if (isNaN(amount) || amount <= 0) {
+      showFormError('teacherAdvanceFormError', 'Please enter a valid advance amount.');
+      return;
+    }
+
+    try {
+      const res = await apiClient.post(`/teachers/${teacherId}/pay`, {
+        amount,
+        payment_date: paymentDate || getTodayDhakaDate(),
+        note: note || 'Teacher Advance Payment'
+      });
+
+      if (res && res.success) {
+        notify(res.message || 'Advance payment posted successfully!', 'success');
+        hideModal('teacherAdvanceModal');
+        document.getElementById('teacherAdvanceForm').reset();
+        await loadAllData();
+      } else {
+        showFormError('teacherAdvanceFormError', res?.error || 'Failed to post advance payment.');
+      }
+    } catch (err) {
+      console.error('Advance payment error:', err);
+      showFormError('teacherAdvanceFormError', err.message || 'Failed to post advance payment.');
+    }
   }
-}
+});
