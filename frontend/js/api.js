@@ -19,7 +19,9 @@ const API_BASE = (() => {
   if (baseEl) {
     // e.g. href="/admission_3/" → strip trailing slash → "/admission_3" + "/api"
     const basePath = (new URL(baseEl.href)).pathname.replace(/\/+$/, '');
-    if (basePath && basePath !== '/') return basePath + '/admission_3/api';
+    if (basePath && basePath !== '/') {
+      return basePath.endsWith('/api') ? basePath : (basePath.endsWith('/admission_3') ? basePath + '/api' : basePath + '/api');
+    }
   }
   return '/admission_3/api';
 })();

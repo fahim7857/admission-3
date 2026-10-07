@@ -4,12 +4,12 @@
 let staffList = [];
 let selectedStaffForDetail = null;
 
-const apiClient = window.api || {
-  get: (url, p) => window.authFetch ? window.authFetch(url).then(r => r.json()) : fetch('/admission_3/api' + url).then(r => r.json()),
-  post: (url, b) => window.authFetch ? window.authFetch(url, { method: 'POST', body: JSON.stringify(b), headers: { 'Content-Type': 'application/json' } }).then(r => r.json()) : fetch('/admission_3/api' + url, { method: 'POST', body: JSON.stringify(b) }).then(r => r.json()),
-  put: (url, b) => window.authFetch ? window.authFetch(url, { method: 'PUT', body: JSON.stringify(b), headers: { 'Content-Type': 'application/json' } }).then(r => r.json()) : fetch('/admission_3/api' + url, { method: 'PUT', body: JSON.stringify(b) }).then(r => r.json()),
-  delete: (url) => window.authFetch ? window.authFetch(url, { method: 'DELETE' }).then(r => r.json()) : fetch('/admission_3/api' + url, { method: 'DELETE' }).then(r => r.json())
-};
+const apiClient = window.api || (typeof api !== 'undefined' ? api : {
+  get: (url, p) => window.authFetch ? window.authFetch('/admission_3/api' + url).then(r => r.json()) : fetch('/admission_3/api' + url).then(r => r.json()),
+  post: (url, b) => window.authFetch ? window.authFetch('/admission_3/api' + url, { method: 'POST', body: JSON.stringify(b), headers: { 'Content-Type': 'application/json' } }).then(r => r.json()) : fetch('/admission_3/api' + url, { method: 'POST', body: JSON.stringify(b), headers: { 'Content-Type': 'application/json' } }).then(r => r.json()),
+  put: (url, b) => window.authFetch ? window.authFetch('/admission_3/api' + url, { method: 'PUT', body: JSON.stringify(b), headers: { 'Content-Type': 'application/json' } }).then(r => r.json()) : fetch('/admission_3/api' + url, { method: 'PUT', body: JSON.stringify(b), headers: { 'Content-Type': 'application/json' } }).then(r => r.json()),
+  delete: (url) => window.authFetch ? window.authFetch('/admission_3/api' + url, { method: 'DELETE' }).then(r => r.json()) : fetch('/admission_3/api' + url, { method: 'DELETE' }).then(r => r.json())
+});
 
 function escapeHtml(str) {
   if (str === null || str === undefined) return '';
@@ -31,6 +31,9 @@ function formatDate(dateStr) {
 }
 
 function getTodayDhakaDate() {
+  if (typeof window.getLocalIsoDate === 'function') {
+    return window.getLocalIsoDate();
+  }
   const now = new Date();
   const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
   const dhakaTime = new Date(utc + (3600000 * 6));
@@ -43,21 +46,31 @@ function getTodayDhakaDate() {
 function showModal(id) {
   const modal = document.getElementById(id);
   if (modal) {
+    modal.style.display = '';
+    modal.classList.add('open');
     modal.classList.add('active');
-    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+  if (typeof window.openModal === 'function') {
+    window.openModal(id);
   }
 }
 
 function hideModal(id) {
   const modal = document.getElementById(id);
   if (modal) {
+    modal.classList.remove('open');
     modal.classList.remove('active');
-    modal.style.display = 'none';
+    modal.style.display = '';
+    document.body.style.overflow = '';
+  }
+  if (typeof window.closeModal === 'function') {
+    window.closeModal(id);
   }
 }
 
 function notify(message, type = 'info') {
-  if (window.showToast) {
+  if (typeof window.showToast === 'function') {
     window.showToast(message, type);
     return;
   }
@@ -126,12 +139,45 @@ document.addEventListener('DOMContentLoaded', async () => {
   const staffStatementDate = document.getElementById('staffStatementDateInput');
   if (staffStatementDate) staffStatementDate.value = todayVal;
 
-  // Setup modal triggers
+  // Setup Month Filter dropdown
+  populateMonthFilter();
+
+  // Setup modal triggers and handlers
   setupEventListeners();
+
+  // Wait for auth if ready
+  if (window.authReady) {
+    try {
+      await window.authReady;
+    } catch (e) {
+      console.warn('Auth ready warning:', e);
+    }
+  }
 
   // Load initial data
   await loadStaffData();
 });
+
+function populateMonthFilter() {
+  const sel = document.getElementById('staffFilterMonth');
+  if (!sel) return;
+
+  const now = new Date();
+  const curYear = now.getFullYear();
+  const curMonth = now.getMonth() + 1;
+  const currentMonthVal = curYear + '-' + (curMonth < 10 ? '0' : '') + curMonth;
+
+  let options = '<option value="">All Time</option>';
+  for (let i = 0; i < 18; i++) {
+    const d = new Date(curYear, curMonth - 1 - i, 1);
+    const y = d.getFullYear();
+    const m = d.getMonth() + 1;
+    const val = y + '-' + (m < 10 ? '0' : '') + m;
+    const label = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    options += `<option value="${val}" ${val === currentMonthVal ? 'selected' : ''}>${label}</option>`;
+  }
+  sel.innerHTML = options;
+}
 
 function setupEventListeners() {
   // Global & Local Search
@@ -148,6 +194,13 @@ function setupEventListeners() {
 
   const postFilter = document.getElementById('staffFilterPost');
   if (postFilter) postFilter.addEventListener('change', renderStaffTable);
+
+  const monthFilter = document.getElementById('staffFilterMonth');
+  if (monthFilter) {
+    monthFilter.addEventListener('change', () => {
+      loadStaffData();
+    });
+  }
 
   // Add Staff Modal
   const openAddBtn = document.getElementById('openAddStaffModalBtn');
@@ -189,7 +242,8 @@ function setupEventListeners() {
       const pDate = document.getElementById('staffPayDateInput');
       if (pDate) pDate.value = getTodayDhakaDate();
       populateStaffSelect();
-      document.getElementById('selectedStaffInfoBox').style.display = 'none';
+      const infoBox = document.getElementById('selectedStaffInfoBox');
+      if (infoBox) infoBox.style.display = 'none';
       showModal('staffPayModal');
     });
   }
@@ -221,6 +275,11 @@ function setupEventListeners() {
   const closeStaffStatementBtn = document.getElementById('closeStaffStatementBtn');
   if (closeStaffStatementBtn) closeStaffStatementBtn.addEventListener('click', () => hideModal('staffAdvanceStatementModal'));
 
+  const stDateInput = document.getElementById('staffStatementDateInput');
+  if (stDateInput) {
+    stDateInput.addEventListener('change', fetchAndRenderStaffAdvanceStatement);
+  }
+
   // Detail / Ledger Modal
   const closeDetailModalBtn = document.getElementById('closeStaffDetailModalBtn');
   if (closeDetailModalBtn) closeDetailModalBtn.addEventListener('click', () => hideModal('staffDetailModal'));
@@ -236,6 +295,39 @@ function setupEventListeners() {
       openPayModalForStaff(selectedStaffForDetail.id);
     });
   }
+
+  // Backdrop click to close modals
+  ['staffModal', 'staffEditModal', 'staffPayModal', 'staffDetailModal', 'staffAdvanceStatementModal'].forEach(id => {
+    const m = document.getElementById(id);
+    if (m) {
+      m.addEventListener('click', (e) => {
+        if (e.target === m) hideModal(id);
+      });
+    }
+  });
+
+  // Escape key to dismiss modals
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      ['staffModal', 'staffEditModal', 'staffPayModal', 'staffDetailModal', 'staffAdvanceStatementModal'].forEach(id => {
+        hideModal(id);
+      });
+    }
+  });
+
+  // Logout button handling if present in HTML
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      if (confirm('Are you sure you want to log out?')) {
+        if (window.auth && typeof window.auth.signOut === 'function') {
+          await window.auth.signOut();
+        } else {
+          window.location.replace('login.html');
+        }
+      }
+    });
+  }
 }
 
 // ----------------------------------------------------
@@ -243,11 +335,19 @@ function setupEventListeners() {
 // ----------------------------------------------------
 async function loadStaffData() {
   try {
-    const res = await apiClient.get('/staff');
+    const monthSel = document.getElementById('staffFilterMonth');
+    const selectedMonth = monthSel ? monthSel.value : '';
+
+    let url = '/staff';
+    if (selectedMonth && /^\d{4}-\d{2}$/.test(selectedMonth)) {
+      url += '?month=' + encodeURIComponent(selectedMonth);
+    }
+
+    const res = await apiClient.get(url);
     if (!res || !res.success) throw new Error(res?.error || 'Failed to load staff records');
 
     staffList = res.staff || [];
-    renderKPIs();
+    renderKPIs(res);
     populatePostFilter();
     renderStaffTable();
   } catch (err) {
@@ -260,23 +360,49 @@ async function loadStaffData() {
   }
 }
 
-async function renderKPIs() {
+async function renderKPIs(apiRes) {
   const totalStaffEl = document.getElementById('statTotalStaff');
   const fixedSalaryEl = document.getElementById('statTotalFixedSalary');
   const todayPaidEl = document.getElementById('statTodayPaid');
   const totalPaidEl = document.getElementById('statTotalPaid');
+  const paidTitleEl = document.getElementById('statPaidTitle');
+  const paidSubEl = document.getElementById('statPaidSub');
+  const paidColHeader = document.getElementById('staffPaidColHeader');
 
   if (totalStaffEl) totalStaffEl.textContent = staffList.length;
 
   let totalFixed = 0;
-  let totalPaidAll = 0;
   staffList.forEach(s => {
     totalFixed += (parseFloat(s.fixed_salary) || 0);
-    totalPaidAll += (parseFloat(s.total_paid) || 0);
   });
-
   if (fixedSalaryEl) fixedSalaryEl.textContent = `৳${totalFixed.toLocaleString()}`;
-  if (totalPaidEl) totalPaidEl.textContent = `৳${totalPaidAll.toLocaleString()}`;
+
+  // Month-wise vs All-time paid
+  const monthSel = document.getElementById('staffFilterMonth');
+  const selectedMonth = monthSel ? monthSel.value : '';
+
+  if (selectedMonth && monthSel.selectedIndex >= 0) {
+    const monthText = monthSel.options[monthSel.selectedIndex].text;
+    if (paidTitleEl) paidTitleEl.textContent = `${monthText.toUpperCase()} STAFF PAYMENT`;
+    if (paidSubEl) paidSubEl.textContent = `Paid in ${monthText}`;
+    if (paidColHeader) paidColHeader.textContent = `Month Payment / Advance`;
+
+    let monthTotal = (apiRes && typeof apiRes.total_month_paid === 'number')
+      ? apiRes.total_month_paid
+      : staffList.reduce((sum, s) => sum + (parseFloat(s.total_paid) || 0), 0);
+
+    if (totalPaidEl) totalPaidEl.textContent = `৳${monthTotal.toLocaleString()}`;
+  } else {
+    if (paidTitleEl) paidTitleEl.textContent = 'ALL-TIME STAFF PAID';
+    if (paidSubEl) paidSubEl.textContent = 'Cumulative staff expenses';
+    if (paidColHeader) paidColHeader.textContent = 'Total Paid / Advance';
+
+    let allTimeTotal = (apiRes && typeof apiRes.total_all_time_paid === 'number')
+      ? apiRes.total_all_time_paid
+      : staffList.reduce((sum, s) => sum + (parseFloat(s.all_time_paid || s.total_paid) || 0), 0);
+
+    if (totalPaidEl) totalPaidEl.textContent = `৳${allTimeTotal.toLocaleString()}`;
+  }
 
   // Fetch today's total from daily statement endpoint
   try {
@@ -674,7 +800,7 @@ async function fetchAndRenderStaffAdvanceStatement() {
   const dateInput = document.getElementById('staffStatementDateInput');
 
   if (!container) return;
-  const dateVal = dateInput ? dateInput.value : getTodayDhakaDate();
+  const dateVal = dateInput && dateInput.value ? dateInput.value : getTodayDhakaDate();
   if (dateDisplay) dateDisplay.textContent = `Date: ${formatDate(dateVal)}`;
 
   container.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 1.5rem; color: #64748b;">Loading statement data...</td></tr>`;
@@ -695,7 +821,7 @@ async function fetchAndRenderStaffAdvanceStatement() {
 
     container.innerHTML = payments.map(p => `
       <tr style="border-bottom: 1px solid #f1f5f9;">
-        <td style="padding: 8px; color: #475569; white-space: nowrap;">${escapeHtml(p.date || p.payment_date || dateVal)}</td>
+        <td style="padding: 8px; color: #475569; white-space: nowrap;">${formatDate(p.date || p.payment_date || dateVal)}</td>
         <td style="padding: 8px; font-weight: 700; color: #0f172a;">${escapeHtml(p.staff_name)}</td>
         <td style="padding: 8px; color: #0369a1; font-weight: 600;">${escapeHtml(p.work_post || 'Office Staff')}</td>
         <td style="padding: 8px; color: #475569; font-size: 0.78rem;">${escapeHtml(p.description || p.note || 'Staff Salary / Advance')}</td>
@@ -709,3 +835,5 @@ async function fetchAndRenderStaffAdvanceStatement() {
 }
 
 window.fetchAndRenderStaffAdvanceStatement = fetchAndRenderStaffAdvanceStatement;
+window.showModal = showModal;
+window.hideModal = hideModal;

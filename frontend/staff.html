@@ -107,10 +107,6 @@
               <span class="user-name" id="userName">Administrator</span>
               <span class="user-role" id="userRole">Super Admin</span>
             </div>
-            <button class="btn btn-secondary btn-sm" id="logoutBtn" title="Sign out"
-              style="padding: 0.35rem 0.5rem; margin-left: 0.5rem;">
-              <span class="material-symbols-outlined" style="font-size: 1rem;">logout</span>
-            </button>
           </div>
         </div>
       </header>
@@ -130,11 +126,6 @@
           </div>
 
           <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-            <button class="btn btn-secondary btn-sm" id="openStaffStatementBtn"
-              style="background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; font-weight: 600;">
-              <span class="material-symbols-outlined" style="font-size: 1.05rem;">print</span>
-              Daily Advance Statement
-            </button>
 
             <button class="btn btn-secondary btn-sm" id="openStaffPayModalBtn"
               style="background: #f0f9ff; color: #0284c7; border-color: #bae6fd; font-weight: 600;">
@@ -186,13 +177,13 @@
 
           <div class="teachers-kpi-card">
             <div class="teachers-kpi-header">
-              <span class="teachers-kpi-title">ALL-TIME STAFF PAID</span>
+              <span class="teachers-kpi-title" id="statPaidTitle">ALL-TIME STAFF PAID</span>
               <div class="teachers-kpi-icon" style="background: #f1f5f9; color: #334155;">
                 <span class="material-symbols-outlined">receipt_long</span>
               </div>
             </div>
             <div class="teachers-kpi-value" id="statTotalPaid" style="color: #334155;">৳0</div>
-            <div class="teachers-kpi-sub" style="color: #64748b;">Cumulative staff expenses</div>
+            <div class="teachers-kpi-sub" id="statPaidSub" style="color: #64748b;">Cumulative staff expenses</div>
           </div>
         </div>
 
@@ -209,6 +200,14 @@
               <option value="">All Work Posts</option>
             </select>
           </div>
+
+          <div class="filter-group" style="display: flex; align-items: center; gap: 0.4rem;">
+            <label for="staffFilterMonth" style="font-size: 0.78rem; font-weight: 600; color: #475569;">Month:</label>
+            <select id="staffFilterMonth" class="form-control"
+              style="width: auto; min-width: 155px; font-size: 0.82rem; padding: 0.45rem 0.75rem; font-weight: 600;">
+              <option value="">All Time</option>
+            </select>
+          </div>
         </div>
 
         <!-- Staff Table Container -->
@@ -221,7 +220,7 @@
                 <th>Mobile Number</th>
                 <th>Address</th>
                 <th style="text-align: right;">Fixed Monthly Salary</th>
-                <th style="text-align: right;">Total Paid / Advance</th>
+                <th style="text-align: right;" id="staffPaidColHeader">Total Paid / Advance</th>
                 <th style="text-align: right;">Actions</th>
               </tr>
             </thead>
@@ -263,7 +262,8 @@
             </div>
             <div class="form-group" style="flex: 1;">
               <label class="form-label" for="staffWorkPostInput">Work Post / Position *</label>
-              <input type="text" id="staffWorkPostInput" class="form-control" placeholder="e.g. Office Assistant" required>
+              <input type="text" id="staffWorkPostInput" class="form-control" placeholder="e.g. Office Assistant"
+                required>
             </div>
           </div>
 
@@ -274,7 +274,8 @@
 
           <div class="form-group">
             <label class="form-label" for="staffFixedSalaryInput">Fixed Monthly Salary (৳) *</label>
-            <input type="number" id="staffFixedSalaryInput" class="form-control" placeholder="e.g. 10000" min="0" step="any" required>
+            <input type="number" id="staffFixedSalaryInput" class="form-control" placeholder="e.g. 10000" min="0"
+              step="any" required>
             <small style="color: #64748b; font-size: 0.74rem; margin-top: 0.2rem; display: block;">
               Predefined baseline salary. Advances and payments of ANY amount can still be issued.
             </small>
@@ -368,7 +369,8 @@
 
           <div class="form-group">
             <label class="form-label" for="staffPayAmountInput">Payment / Advance Amount (৳) *</label>
-            <input type="number" id="staffPayAmountInput" class="form-control" placeholder="e.g. 3000" min="1" step="any" required>
+            <input type="number" id="staffPayAmountInput" class="form-control" placeholder="e.g. 3000" min="1"
+              step="any" required>
             <small style="color: #64748b; font-size: 0.74rem; margin-top: 0.2rem; display: block;">
               Staff can receive ANY amount as advance or payment. Not restricted by fixed salary.
             </small>
@@ -381,12 +383,14 @@
 
           <div class="form-group">
             <label class="form-label" for="staffPayNoteInput">Description / Note</label>
-            <input type="text" id="staffPayNoteInput" class="form-control" placeholder="e.g. Advance against monthly salary">
+            <input type="text" id="staffPayNoteInput" class="form-control"
+              placeholder="e.g. Advance against monthly salary">
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" id="cancelStaffPayBtn">Cancel</button>
-          <button type="submit" class="btn btn-primary" style="background: #0284c7;">Post Payment (Add to Expense)</button>
+          <button type="submit" class="btn btn-primary" style="background: #0284c7;">Post Payment (Add to
+            Expense)</button>
         </div>
       </form>
     </div>
@@ -397,22 +401,28 @@
     <div class="modal-dialog" style="max-width: 650px;">
       <div class="modal-header">
         <h3 class="modal-title" id="detailStaffName">Staff Profile & Payment Ledger</h3>
-        <button type="button" class="modal-close" id="closeStaffDetailModalBtn" aria-label="Close modal">&times;</button>
+        <button type="button" class="modal-close" id="closeStaffDetailModalBtn"
+          aria-label="Close modal">&times;</button>
       </div>
       <div class="modal-body" style="gap: 1.15rem;">
         <!-- Summary Cards -->
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
           <div style="background: #f8fafc; padding: 0.65rem 0.85rem; border-radius: 8px; border: 1px solid #e2e8f0;">
             <div style="font-size: 0.68rem; color: #64748b; text-transform: uppercase; font-weight: 700;">Position</div>
-            <div style="font-weight: 700; color: #0f172a; font-size: 0.88rem; margin-top: 0.2rem;" id="detailWorkPost">-</div>
+            <div style="font-weight: 700; color: #0f172a; font-size: 0.88rem; margin-top: 0.2rem;" id="detailWorkPost">-
+            </div>
           </div>
           <div style="background: #f8fafc; padding: 0.65rem 0.85rem; border-radius: 8px; border: 1px solid #e2e8f0;">
-            <div style="font-size: 0.68rem; color: #64748b; text-transform: uppercase; font-weight: 700;">Fixed Monthly Salary</div>
-            <div style="font-weight: 700; color: #0f172a; font-size: 0.88rem; margin-top: 0.2rem;" id="detailFixedSalary">৳0</div>
+            <div style="font-size: 0.68rem; color: #64748b; text-transform: uppercase; font-weight: 700;">Fixed Monthly
+              Salary</div>
+            <div style="font-weight: 700; color: #0f172a; font-size: 0.88rem; margin-top: 0.2rem;"
+              id="detailFixedSalary">৳0</div>
           </div>
           <div style="background: #f0fdf4; padding: 0.65rem 0.85rem; border-radius: 8px; border: 1px solid #bbf7d0;">
-            <div style="font-size: 0.68rem; color: #166534; text-transform: uppercase; font-weight: 700;">Total Amount Paid</div>
-            <div style="font-weight: 800; color: #16a34a; font-size: 0.95rem; margin-top: 0.2rem;" id="detailTotalPaid">৳0</div>
+            <div style="font-size: 0.68rem; color: #166534; text-transform: uppercase; font-weight: 700;">Total Amount
+              Paid</div>
+            <div style="font-weight: 800; color: #16a34a; font-size: 0.95rem; margin-top: 0.2rem;" id="detailTotalPaid">
+              ৳0</div>
           </div>
         </div>
 
@@ -428,7 +438,8 @@
             <span>Payment & Advance History</span>
             <span style="font-size: 0.72rem; color: #64748b; font-weight: 500;">Cleared payments</span>
           </h4>
-          <div style="max-height: 220px; overflow-y: auto; border: 1px solid var(--outline-variant); border-radius: 6px;">
+          <div
+            style="max-height: 220px; overflow-y: auto; border: 1px solid var(--outline-variant); border-radius: 6px;">
             <table class="data-table" style="font-size: 0.78rem;">
               <thead>
                 <tr>
@@ -439,7 +450,8 @@
               </thead>
               <tbody id="detailPaymentHistoryBody">
                 <tr>
-                  <td colspan="3" style="text-align: center; padding: 1rem; color: #64748b;">No payment history recorded yet</td>
+                  <td colspan="3" style="text-align: center; padding: 1rem; color: #64748b;">No payment history recorded
+                    yet</td>
                 </tr>
               </tbody>
             </table>
@@ -451,69 +463,6 @@
         <button type="button" class="btn btn-primary btn-sm" id="detailQuickPayBtn" style="background: #0284c7;">
           <span class="material-symbols-outlined" style="font-size: 1rem;">payments</span>
           Record New Payment
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal: Daily Staff Payment & Advance Statement -->
-  <div id="staffAdvanceStatementModal" class="modal-overlay">
-    <div class="modal-dialog" style="max-width: 720px;">
-      <div class="modal-header">
-        <h3 class="modal-title" style="display: flex; align-items: center; gap: 0.4rem;">
-          <span class="material-symbols-outlined" style="color: #16a34a;">print</span>
-          Daily Staff Payment & Advance Statement
-        </h3>
-        <button type="button" class="modal-close" id="closeStaffStatementModalBtn" aria-label="Close modal">&times;</button>
-      </div>
-      <div class="modal-body" style="gap: 1rem;">
-        <div style="display: flex; gap: 0.75rem; align-items: center; background: #f8fafc; padding: 0.75rem; border-radius: 8px;">
-          <label style="font-size: 0.82rem; font-weight: 600; color: #334155;">Select Statement Date:</label>
-          <input type="date" id="staffStatementDateInput" class="form-control" style="width: auto;"
-            onchange="fetchAndRenderStaffAdvanceStatement()">
-        </div>
-
-        <div id="staffStatementPrintable"
-          style="background: white; padding: 1.25rem; border: 1px solid #e2e8f0; border-radius: 8px;">
-          <div style="text-align: center; margin-bottom: 1rem;">
-            <h2 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0;">COACHING CENTER MANAGEMENT SYSTEM</h2>
-            <div style="font-size: 0.85rem; font-weight: 700; color: #16a34a; margin-top: 0.2rem;">
-              DAILY STAFF PAYMENT & ADVANCE STATEMENT
-            </div>
-            <div style="font-size: 0.78rem; color: #64748b; margin-top: 0.15rem;" id="staffStatementDateDisplay">Date: —</div>
-          </div>
-
-          <table class="data-table" style="font-size: 0.8rem; width: 100%; border-collapse: collapse;">
-            <thead>
-              <tr style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
-                <th style="padding: 8px; text-align: left;">Date</th>
-                <th style="padding: 8px; text-align: left;">Staff Name</th>
-                <th style="padding: 8px; text-align: left;">Work Post</th>
-                <th style="padding: 8px; text-align: left;">Description</th>
-                <th style="padding: 8px; text-align: right;">Amount Paid (৳)</th>
-              </tr>
-            </thead>
-            <tbody id="staffStatementTableBody">
-              <tr>
-                <td colspan="5" style="text-align: center; padding: 1.5rem; color: #64748b;">Loading statement data...</td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr style="border-top: 2px solid #cbd5e1; font-weight: 700; background: #f8fafc;">
-                <td colspan="4" style="padding: 10px; text-align: right;">Total Staff Payments / Advances:</td>
-                <td style="padding: 10px; text-align: right; color: #16a34a; font-size: 1rem;"
-                  id="staffStatementTotalAmount">৳0</td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </div>
-      <div class="modal-footer" style="display: flex; justify-content: space-between;">
-        <button type="button" class="btn btn-secondary btn-sm" id="closeStaffStatementBtn">Close</button>
-        <button type="button" class="btn btn-primary btn-sm"
-          onclick="printVoucherContent('staffStatementPrintable', 'Daily Staff Advance Statement')">
-          <span class="material-symbols-outlined" style="font-size: 1rem;">print</span>
-          Print Statement
         </button>
       </div>
     </div>

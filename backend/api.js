@@ -3338,7 +3338,7 @@ apiRouter.get('/staff', (req, res) => {
   try {
     const month = req.query.month; // e.g. '2026-10' or '2026-09'
     const staffList = db.prepare('SELECT * FROM staff ORDER BY name ASC').all();
-    
+
     let totalMonthPaid = 0;
     let totalAllTimePaid = 0;
 
@@ -3371,6 +3371,49 @@ apiRouter.get('/staff', (req, res) => {
       month: month || null,
       total_month_paid: totalMonthPaid,
       total_all_time_paid: totalAllTimePaid
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+apiRouter.get('/staff/advance-statement', (req, res) => {
+  try {
+    const date = req.query.date || getDhakaDate();
+    const payments = db.prepare(`
+      SELECT sp.*, s.name as staff_name, s.phone as staff_phone, s.address, s.work_post, s.fixed_salary
+      FROM staff_payments sp
+      JOIN staff s ON sp.staff_id = s.id
+      WHERE sp.payment_date = ?
+      ORDER BY sp.id DESC
+    `).all(date);
+
+    let totalAmount = 0;
+    const items = payments.map(p => {
+      totalAmount += p.amount || 0;
+      const isAdvance = p.amount > (p.fixed_salary || 0) || (p.note && /advance/i.test(p.note));
+      return {
+        id: p.id,
+        date: p.payment_date,
+        payment_date: p.payment_date,
+        staff_name: p.staff_name,
+        staff_phone: p.staff_phone,
+        work_post: p.work_post || 'Office Staff',
+        address: p.address || '',
+        fixed_salary: p.fixed_salary || 0,
+        amount: p.amount,
+        payment_type: isAdvance ? 'Advance' : 'Salary Payment',
+        description: p.note || 'Staff Salary / Advance',
+        note: p.note || 'Staff Salary / Advance'
+      };
+    });
+
+    res.json({
+      success: true,
+      date,
+      totalAmount,
+      count: items.length,
+      payments: items
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -3524,49 +3567,6 @@ apiRouter.post('/staff/:id/pay', (req, res) => {
         paymentDate,
         voucherNo
       }
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-apiRouter.get('/staff/advance-statement', (req, res) => {
-  try {
-    const date = req.query.date || getDhakaDate();
-    const payments = db.prepare(`
-      SELECT sp.*, s.name as staff_name, s.phone as staff_phone, s.address, s.work_post, s.fixed_salary
-      FROM staff_payments sp
-      JOIN staff s ON sp.staff_id = s.id
-      WHERE sp.payment_date = ?
-      ORDER BY sp.id DESC
-    `).all(date);
-
-    let totalAmount = 0;
-    const items = payments.map(p => {
-      totalAmount += p.amount || 0;
-      const isAdvance = p.amount > (p.fixed_salary || 0) || (p.note && /advance/i.test(p.note));
-      return {
-        id: p.id,
-        date: p.payment_date,
-        payment_date: p.payment_date,
-        staff_name: p.staff_name,
-        staff_phone: p.staff_phone,
-        work_post: p.work_post || 'Office Staff',
-        address: p.address || '',
-        fixed_salary: p.fixed_salary || 0,
-        amount: p.amount,
-        payment_type: isAdvance ? 'Advance' : 'Salary Payment',
-        description: p.note || 'Staff Salary / Advance',
-        note: p.note || 'Staff Salary / Advance'
-      };
-    });
-
-    res.json({
-      success: true,
-      date,
-      totalAmount,
-      count: items.length,
-      payments: items
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
