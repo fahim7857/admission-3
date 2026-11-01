@@ -13,4 +13,4 @@ The first Super Admin account is created in Supabase Auth. Assign its role by
 running the commented initial-admin statement in `supabase/setup.sql`.
 
 SQLite remains the application database. Supabase is used only for Auth, roles,
-and staff application review.
+and staff application review."# school-management" 
