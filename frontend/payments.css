@@ -47,3 +47,21 @@
   background: #eff6ff;
   color: #1d4ed8;
 }
+
+/* === Mobile Responsive: Payments Page === */
+@media (max-width: 768px) {
+  .payments-kpi-grid {
+    gap: 0.75rem;
+  }
+
+  .payment-method-badge {
+    font-size: 0.7rem;
+    padding: 1px 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .payments-kpi-grid {
+    gap: 0.5rem;
+  }
+}

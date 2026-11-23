@@ -373,4 +373,27 @@
   .teachers-kpi-grid {
     grid-template-columns: 1fr;
   }
+
+  .teachers-kpi-card {
+    padding: 0.75rem 0.95rem;
+    min-height: 80px;
+  }
+
+  .teachers-kpi-value {
+    font-size: 1.15rem;
+  }
+
+  .teachers-tabs {
+    gap: 0.25rem;
+  }
+
+  .teachers-tab-btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.76rem;
+  }
+
+  /* Excel tables scroll horizontally on small phones */
+  .excel-table {
+    min-width: 500px;
+  }
 }

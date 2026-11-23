@@ -1159,6 +1159,236 @@ body {
   }
 }
 
+/* ==========================================================================
+   ENHANCED MOBILE RESPONSIVE OVERRIDES
+   Full mobile-first responsive fixes for all pages, tables, cards, divs
+   ========================================================================== */
+
+/* --- FIX: Tables switch from fixed to auto layout on mobile so columns  ---
+   --- can shrink and action buttons (3-dot / icon buttons) are never     ---
+   --- clipped or hidden.                                                 --- */
+@media (max-width: 768px) {
+  /* Let all data tables auto-size columns on mobile */
+  .data-table {
+    table-layout: auto !important;
+    min-width: 600px;
+  }
+
+  /* Ensure the scrollable container works properly */
+  .data-table-container {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100vw;
+  }
+
+  /* Action buttons in table cells: never clip, always visible */
+  .data-table td:last-child,
+  .data-table th:last-child {
+    overflow: visible !important;
+    white-space: nowrap !important;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Action button groups wrap nicely on mobile */
+  .action-btns,
+  .action-btn-group {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    overflow: visible !important;
+    white-space: normal !important;
+  }
+
+  /* Make touch targets bigger on mobile (min 44px per WCAG) */
+  .action-btns .btn,
+  .action-btn-group .btn,
+  .data-table .btn-sm {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 0.35rem 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* --- Topbar: prevent overflow on all screen sizes --- */
+@media (max-width: 768px) {
+  .app-topbar {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .topbar-actions {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .topbar-ay-selector {
+    order: -1;
+  }
+
+  .badge-tag-select {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    padding-right: 1.3rem;
+  }
+
+  .user-profile {
+    gap: 0.4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .badge-tag {
+    font-size: 0.68rem;
+    padding: 0.2rem 0.5rem;
+  }
+}
+
+/* --- Modal dialogs: full width on mobile --- */
+@media (max-width: 480px) {
+  .modal-dialog {
+    width: calc(100vw - 1rem) !important;
+    max-width: calc(100vw - 1rem) !important;
+    max-height: 95vh !important;
+    margin: 0.5rem !important;
+    border-radius: var(--radius-md) !important;
+  }
+
+  .modal-body {
+    padding: 0.85rem !important;
+  }
+
+  .modal-header {
+    padding: 0.85rem !important;
+  }
+
+  .modal-footer {
+    padding: 0.65rem 0.85rem !important;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .modal-footer .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* --- Cards & surfaces: full width with no overflow on mobile --- */
+@media (max-width: 640px) {
+  .card {
+    border-radius: var(--radius-md);
+    padding: 0.85rem;
+    overflow: visible;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .kpi-card {
+    padding: 0.85rem;
+  }
+
+  .kpi-value {
+    font-size: 1.3rem;
+  }
+
+  .kpi-label {
+    font-size: 0.7rem;
+  }
+}
+
+/* --- Form rows: single column on mobile --- */
+@media (max-width: 480px) {
+  .form-row {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem;
+  }
+
+  .form-control {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+}
+
+/* --- Page action header: stack vertically on mobile --- */
+@media (max-width: 640px) {
+  .page-action-header {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 0.75rem;
+  }
+
+  .page-action-header-right {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .page-action-header-right .btn {
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+/* --- Sidebar: improve touch area and smooth slide on mobile --- */
+@media (max-width: 1024px) {
+  .mobile-menu-btn {
+    display: inline-flex !important;
+    min-width: 40px;
+    min-height: 40px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .app-sidebar {
+    width: 280px;
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+
+  .sidebar-backdrop {
+    will-change: opacity;
+  }
+}
+
+/* --- Global: prevent any horizontal overflow anywhere --- */
+@media (max-width: 768px) {
+  .app-container {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  .app-main {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  .page-content {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  /* Any flex or grid child that might overflow */
+  .page-content > * {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+
 /* Print Styling */
 @media print {
 

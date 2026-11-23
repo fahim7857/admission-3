@@ -30,3 +30,27 @@
 .system-info-item:last-child {
   border-bottom: none;
 }
+
+/* === Mobile Responsive: Settings Page === */
+@media (max-width: 768px) {
+  .settings-layout-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .backup-card {
+    padding: 1rem;
+  }
+
+  .system-info-item {
+    font-size: 0.78rem;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-layout-grid {
+    gap: 0.75rem;
+  }
+}

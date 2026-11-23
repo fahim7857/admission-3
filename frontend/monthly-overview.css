@@ -136,3 +136,43 @@
   white-space: normal;
   overflow: hidden;
 }
+
+/* === Mobile Responsive: Monthly Overview Page === */
+@media (max-width: 768px) {
+  .matrix-table-container {
+    max-width: 100vw;
+  }
+
+  .matrix-table {
+    min-width: 500px;
+  }
+
+  .due-register-table {
+    table-layout: auto !important;
+    min-width: 600px;
+  }
+
+  /* Allow action column to wrap on mobile */
+  .due-register-table td:nth-child(7) {
+    white-space: normal !important;
+    overflow: visible !important;
+  }
+
+  /* Adjust sticky columns for smaller screens */
+  .matrix-table th:nth-child(2),
+  .matrix-table td:nth-child(2) {
+    left: 55px;
+  }
+}
+
+@media (max-width: 480px) {
+  .overview-stats-grid {
+    gap: 0.65rem;
+  }
+
+  .matrix-cell-paid,
+  .matrix-cell-due {
+    font-size: 0.68rem;
+    padding: 1px 3px;
+  }
+}

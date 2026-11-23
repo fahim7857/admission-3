@@ -138,3 +138,43 @@
   height: 230px;
   width: 100%;
 }
+
+/* === Mobile Responsive: Dashboard Page === */
+@media (max-width: 768px) {
+  .due-students-scroll,
+  .class-overview-scroll {
+    max-height: 220px;
+  }
+
+  .due-students-table,
+  .class-overview-table {
+    table-layout: auto !important;
+    min-width: 500px;
+  }
+
+  .chart-container {
+    height: 200px;
+  }
+
+  .trx-item {
+    padding: 0.6rem 0;
+    gap: 0.5rem;
+  }
+
+  .trx-icon {
+    width: 32px;
+    height: 32px;
+    margin-right: 0.5rem;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-grid-kpi {
+    gap: 0.75rem;
+  }
+
+  .chart-container {
+    height: 180px;
+  }
+}

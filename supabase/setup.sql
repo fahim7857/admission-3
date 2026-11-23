@@ -75,7 +75,7 @@ set role = excluded.role;
 INSERT INTO public.user_roles (user_id, role)
 SELECT id, 'super_admin'
 FROM auth.users
-WHERE lower(email) = lower('newemail@example.com')
+WHERE lower(email) = lower('xyz@gmail.com.com')
 ON CONFLICT (user_id)
 DO UPDATE SET role = 'super_admin';
 --staff application zero korar sql code

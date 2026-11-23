@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,6 +8,7 @@
   <link rel="stylesheet" href="css/fonts.css">
   <link rel="stylesheet" href="auth.css">
 </head>
+
 <body class="auth-page">
   <main class="auth-shell">
     <section class="auth-card">
@@ -33,14 +35,21 @@
         <button class="auth-button" type="submit">Sign in</button>
       </form>
 
+      <div class="demo-credentials">
+        <strong>Demo account</strong><br>
+        Email: faizulislamdk@gmail.com<br>
+        Password: 12345678
+      </div>
+
       <p id="login-message" class="auth-message" role="alert"></p>
       <div class="auth-links">
         <a href="apply.html">Apply for Staff access</a>
       </div>
     </section>
   </main>
- <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/auth.js"></script>
-<script src="login.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/auth.js"></script>
+  <script src="login.js"></script>
 </body>
+
 </html>

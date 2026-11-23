@@ -101,6 +101,83 @@
   margin-bottom: 1rem;
 }
 
+/* === Mobile Responsive: Result Cards Page (screen only) === */
+@media screen and (max-width: 768px) {
+  .report-card-wrapper {
+    padding: 1rem 1.2rem;
+    max-width: 100%;
+  }
+
+  .report-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+  }
+
+  .report-logo-box {
+    width: 65px;
+    height: 65px;
+  }
+
+  .report-school-name {
+    font-size: 1.15rem;
+  }
+
+  .report-student-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.35rem 0.75rem;
+    font-size: 0.78rem;
+  }
+
+  .report-table {
+    font-size: 0.72rem;
+  }
+
+  .report-table th,
+  .report-table td {
+    padding: 4px 5px;
+  }
+
+  .report-lower-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .report-remarks-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .report-signatures {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5rem;
+    padding-top: 1.25rem;
+  }
+
+  .sig-box {
+    min-width: 100px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .report-card-wrapper {
+    padding: 0.75rem 0.85rem;
+    border-width: 1.5px;
+  }
+
+  .report-student-grid {
+    grid-template-columns: 1fr;
+    gap: 0.3rem;
+  }
+
+  .report-badge-box {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.85rem;
+  }
+}
+
 .report-info-item {
   display: flex;
   flex-direction: column;

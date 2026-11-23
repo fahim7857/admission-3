@@ -69,3 +69,39 @@
   background-color: #ffffff;
   border-style: dashed;
 }
+
+/* === Mobile Responsive: Student Details Page === */
+@media (max-width: 768px) {
+  .student-profile-card {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .student-avatar-lg {
+    width: 70px;
+    height: 70px;
+  }
+
+  .annual-matrix-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .annual-matrix-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .month-lifecycle-card {
+    padding: 0.65rem;
+  }
+
+  .student-profile-card {
+    padding: 0.85rem;
+  }
+}

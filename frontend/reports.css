@@ -47,3 +47,31 @@
   justify-content: space-between;
   align-items: flex-start;
 }
+
+/* === Mobile Responsive: Reports Page === */
+@media (max-width: 768px) {
+  .statement-sheet {
+    padding: 1rem;
+    border-radius: var(--radius-md);
+  }
+
+  .statement-header {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .report-breakdown-grid {
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .reports-kpi-grid {
+    gap: 0.65rem;
+  }
+
+  .statement-sheet {
+    padding: 0.75rem;
+  }
+}

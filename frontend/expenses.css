@@ -88,3 +88,33 @@
 .expense-row-item:hover {
   background: #f8fafc;
 }
+
+/* === Mobile Responsive: Expenses Page === */
+@media (max-width: 768px) {
+  .expenses-page-table {
+    table-layout: auto !important;
+    min-width: 600px;
+  }
+
+  /* Allow action buttons (Receipt + Delete) to wrap */
+  .expenses-page-table td:nth-child(6) {
+    white-space: normal !important;
+    overflow: visible !important;
+  }
+
+  .category-chips-bar {
+    gap: 0.35rem;
+    padding-bottom: 0.35rem;
+  }
+
+  .category-chip {
+    font-size: 0.72rem;
+    padding: 0.3rem 0.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .expenses-kpi-grid {
+    gap: 0.75rem;
+  }
+}
