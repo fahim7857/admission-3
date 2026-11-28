@@ -371,7 +371,14 @@
 
 @media (max-width: 480px) {
   .teachers-kpi-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.55rem;
+  }
+
+  @media (max-width: 360px) {
+    .teachers-kpi-grid {
+      grid-template-columns: 1fr;
+    }
   }
 
   .teachers-kpi-card {

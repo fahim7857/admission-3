@@ -14,6 +14,13 @@
 
 @media (max-width: 640px) {
   .students-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .students-stats-grid {
     grid-template-columns: 1fr;
   }
 }

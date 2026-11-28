@@ -249,14 +249,35 @@ body.auth-page {
   background: #fff1f2;
 }
 
+.demo-credentials {
+  margin-top: 1rem;
+  padding: 0.75rem 0.85rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  color: #475569;
+  line-height: 1.45;
+}
+
 @media (max-width: 560px) {
   .auth-shell {
     width: min(100% - 1rem, 470px);
-    padding: 0.5rem 0;
+    padding: 0.75rem 0;
+    min-height: 100dvh;
   }
 
   .auth-card {
     padding: 1.35rem;
-    border-radius: 15px;
+    border-radius: 16px;
+  }
+
+  .auth-card h2 {
+    font-size: 1.4rem;
+  }
+
+  .auth-input,
+  .auth-textarea {
+    font-size: 16px !important;
   }
 }

@@ -95,17 +95,19 @@ body {
 .sidebar-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-  z-index: 45;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 95;
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.25s ease;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
 }
 
 .sidebar-backdrop.active {
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
 }
 
@@ -318,9 +320,10 @@ body {
   justify-content: space-between;
   padding: 0.5rem 1.25rem;
   flex-shrink: 0;
-  z-index: 10;
+  z-index: 40;
   gap: 0.75rem;
   max-width: 100%;
+  position: relative;
 }
 
 .topbar-left {
@@ -344,12 +347,27 @@ body {
   justify-content: center;
   flex-shrink: 0;
   transition: all 0.15s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  position: relative;
+  z-index: 5;
+}
+
+.mobile-menu-btn * {
+  pointer-events: none;
 }
 
 .mobile-menu-btn:hover {
   background-color: var(--surface-low);
   border-color: var(--primary);
   color: var(--primary);
+}
+
+.mobile-menu-btn:active {
+  background-color: var(--surface-high);
+  transform: scale(0.96);
 }
 
 .topbar-search {
@@ -904,488 +922,506 @@ body {
 }
 
 /* ==========================================================================
-   RESPONSIVE DESIGN & SCREEN FIT STYLES
-   Ensures application fits any screen perfectly without horizontal page dragging
+   RESPONSIVE DESIGN & MOBILE OPTIMIZATION STYLES
+   Ensures application works smoothly and beautifully on all mobile screens
    ========================================================================== */
 
-/* Large Tablets & Small Laptops (<= 1024px) */
+/* --- Touch Targets & Mobile Defaults --- */
 @media (max-width: 1024px) {
+  /* Sidebar Drawer on Mobile / Tablets */
   .app-sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    height: 100vh;
-    transform: translateX(-100%);
-    box-shadow: var(--shadow-lg);
-    z-index: 50;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    width: 280px !important;
+    max-width: 85vw !important;
+    transform: translateX(-100%) !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1) !important;
+    z-index: 100 !important;
+    visibility: hidden !important;
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.28s ease !important;
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
   }
 
   .app-sidebar.open {
-    transform: translateX(0);
+    transform: translateX(0) !important;
+    visibility: visible !important;
   }
 
+  /* Backdrop */
+  .sidebar-backdrop {
+    z-index: 95 !important;
+  }
+
+  .sidebar-backdrop.active {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+
+  /* 3-Dot / Hamburger Mobile Menu Button */
   .mobile-menu-btn {
-    display: inline-flex;
+    display: inline-flex !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
+    padding: 0.45rem 0.6rem !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent !important;
+    background-color: transparent;
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-md);
+    color: var(--on-surface);
+    position: relative;
+    z-index: 5;
+  }
+
+  .mobile-menu-btn:hover {
+    background-color: var(--surface-low);
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  .mobile-menu-btn:active {
+    background-color: var(--surface-high);
+    transform: scale(0.95);
   }
 
   .topbar-date {
-    display: none;
+    display: none !important;
   }
 
   .user-info .user-role {
-    display: none;
+    display: none !important;
   }
 
   .page-content {
     padding: 1.25rem;
   }
-
-  .filters-bar {
-    gap: 0.75rem;
-  }
 }
 
-/* Standard Tablets & Large Phones (<= 768px) */
+/* Standard Tablets & Phones (<= 768px) */
 @media (max-width: 768px) {
+  /* Prevent horizontal drag/overflow */
+  html, body, .app-container, .app-main, .page-content {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  /* Prevent iOS automatic zoom on form input focus */
+  input, select, textarea, .form-control {
+    font-size: 16px !important;
+  }
+
+  /* Sticky Topbar */
   .app-topbar {
-    padding: 0.5rem 0.85rem;
-    min-height: 56px;
+    padding: 0.5rem 0.85rem !important;
+    min-height: 56px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 0.65rem !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 40 !important;
+    background: var(--surface-lowest) !important;
+    border-bottom: 1px solid var(--outline-variant) !important;
+  }
+
+  .topbar-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.65rem !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
   }
 
   .topbar-search {
-    max-width: 180px;
+    max-width: 200px !important;
+    padding: 0.35rem 0.65rem !important;
   }
 
   .topbar-actions {
-    gap: 0.5rem;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    flex-shrink: 0 !important;
   }
 
   .badge-tag.desktop-tag {
-    display: none;
-  }
-
-  .user-profile {
-    padding-left: 0.4rem;
-    border-left: none;
+    display: none !important;
   }
 
   .user-info {
-    display: none;
+    display: none !important;
+  }
+
+  .user-profile {
+    padding-left: 0.35rem !important;
+    border-left: none !important;
+    gap: 0.35rem !important;
+  }
+
+  .badge-tag-select {
+    font-size: 0.72rem !important;
+    padding: 0.25rem 1.4rem 0.25rem 0.55rem !important;
+    font-weight: 600 !important;
   }
 
   .page-content {
-    padding: 0.85rem;
+    padding: 0.85rem !important;
   }
 
+  /* Page Action Header (Title + Action Buttons) */
   .page-action-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.75rem;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+    margin-bottom: 1.25rem !important;
+  }
+
+  .page-action-header-left {
+    gap: 0.25rem !important;
   }
 
   .page-action-header-right {
-    width: 100%;
-    justify-content: flex-start;
+    width: 100% !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+    justify-content: stretch !important;
   }
 
-  .page-action-header-right>* {
-    flex: 1 1 auto;
+  .page-action-header-right > * {
+    flex: 1 1 auto !important;
+    min-width: 120px !important;
+    text-align: center !important;
+    justify-content: center !important;
   }
 
-  .form-row {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-
-  .modal-dialog {
-    width: calc(100vw - 1.25rem) !important;
-    max-width: calc(100vw - 1.25rem) !important;
-    margin: 0.625rem;
-  }
-
-  .modal-body {
-    padding: 1rem;
-  }
-
-  .modal-header {
-    padding: 1rem;
-  }
-
-  .modal-footer {
-    padding: 0.75rem 1rem;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .modal-footer .btn {
-    flex: 1 1 auto;
-    justify-content: center;
-  }
-
-  /* Filters bar responsive stacking */
+  /* Filters Bar */
   .filters-bar {
-    flex-direction: column;
+    flex-direction: column !important;
     align-items: stretch !important;
-    padding: 0.85rem 1rem;
+    padding: 0.75rem 0.85rem !important;
+    gap: 0.5rem !important;
+    margin-bottom: 1.25rem !important;
   }
 
-  .filters-bar>* {
+  .filters-bar > * {
     width: 100% !important;
     max-width: 100% !important;
-    margin-left: 0 !important;
+    margin: 0 !important;
   }
 
   .filter-group {
-    flex-wrap: wrap;
-    width: 100%;
-    gap: 0.5rem;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    gap: 0.4rem !important;
   }
 
   .filter-group input,
   .filter-group select {
     flex: 1 1 120px !important;
-    width: auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
   }
 
-  /* Buttons on mobile */
+  /* Form Row Stacking */
+  .form-row {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  /* Touch-Friendly Buttons */
   .btn {
-    min-height: 38px;
-    padding: 0.45rem 0.85rem;
+    min-height: 38px !important;
+    padding: 0.45rem 0.85rem !important;
+    touch-action: manipulation !important;
   }
 
-  /* Admin panel responsive */
-  .admin-kpi-grid {
+  /* KPI Grid Stacking: 2 Columns for Perfect Balance on Mobile */
+  .dashboard-grid-kpi,
+  .students-stats-grid,
+  .payments-kpi-grid,
+  .expenses-kpi-grid,
+  .reports-kpi-grid,
+  .teachers-kpi-grid,
+  .admin-kpi-grid,
+  .overview-stats-grid {
     grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
+    margin-bottom: 1.25rem !important;
   }
 
-  .admin-tabs {
-    flex-wrap: wrap;
-    gap: 0.35rem;
+  .kpi-card,
+  .teachers-kpi-card,
+  .admin-kpi-card {
+    padding: 0.85rem 1rem !important;
+    min-height: auto !important;
   }
 
-  .admin-tab-btn {
-    font-size: 0.78rem;
-    padding: 0.4rem 0.7rem;
+  .kpi-value,
+  .teachers-kpi-value,
+  .admin-kpi-value {
+    font-size: 1.35rem !important;
   }
 
-  /* Table action buttons: wrap instead of overflow */
+  .kpi-label,
+  .teachers-kpi-title,
+  .admin-kpi-title {
+    font-size: 0.68rem !important;
+  }
+
+  /* Middle / Bottom Grids on Dashboard */
+  .dashboard-middle-grid,
+  .dashboard-bottom-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  /* Data Tables: Horizontal Touch Scroll without Page Distortion */
+  .data-table-container,
+  .matrix-table-container,
+  .table-responsive {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    border-radius: var(--radius-md) !important;
+    border: 1px solid var(--outline-variant) !important;
+    background: var(--surface-lowest) !important;
+    margin-bottom: 1rem !important;
+    box-sizing: border-box !important;
+  }
+
+  .data-table {
+    table-layout: auto !important;
+    min-width: 580px !important;
+    width: 100% !important;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.45rem 0.55rem !important;
+    font-size: 0.78rem !important;
+  }
+
+  .data-table td:last-child,
+  .data-table th:last-child {
+    overflow: visible !important;
+    white-space: nowrap !important;
+    position: relative !important;
+    z-index: 1 !important;
+  }
+
+  .action-btns,
   .action-btn-group {
-    flex-wrap: wrap;
-    gap: 0.3rem;
+    display: inline-flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.3rem !important;
+    overflow: visible !important;
+    white-space: normal !important;
   }
 
-  /* Make approve/reject buttons more touch-friendly */
+  .action-btns .btn,
+  .action-btn-group .btn,
+  .data-table .btn-sm {
+    min-width: 34px !important;
+    min-height: 34px !important;
+    padding: 0.35rem 0.5rem !important;
+    font-size: 0.75rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    touch-action: manipulation !important;
+  }
+
   .btn-approve,
   .btn-reject {
-    min-height: 36px;
-    padding: 0.4rem 0.65rem;
-    white-space: nowrap;
-    overflow: visible;
+    min-height: 36px !important;
+    padding: 0.4rem 0.65rem !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
   }
 
-  /* Topbar on admin page: hide super admin badge on very small screens */
-  .topbar-actions .badge-tag[style*="e0e7ff"] {
+  /* Modals: Mobile Optimized Dialog */
+  .modal-overlay {
+    padding: 0.5rem !important;
+  }
+
+  .modal-dialog {
+    width: calc(100vw - 1rem) !important;
+    max-width: calc(100vw - 1rem) !important;
+    max-height: 92vh !important;
+    max-height: 92dvh !important;
+    margin: auto !important;
+    border-radius: var(--radius-md) !important;
+  }
+
+  .modal-header {
+    padding: 0.85rem 1rem !important;
+  }
+
+  .modal-title {
+    font-size: 1rem !important;
+  }
+
+  .modal-body {
+    padding: 0.85rem 1rem !important;
+  }
+
+  .modal-footer {
+    padding: 0.75rem 1rem !important;
+    flex-wrap: wrap !important;
+    gap: 0.4rem !important;
+  }
+
+  .modal-footer .btn {
+    flex: 1 1 auto !important;
+    min-width: 100px !important;
+    justify-content: center !important;
+  }
+
+  /* Cards & Surfaces */
+  .card {
+    border-radius: var(--radius-md) !important;
+    padding: 1rem !important;
+  }
+
+  .card-header {
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+  }
+
+  /* Tabs Bar Horizontal Scroll */
+  .teachers-tabs,
+  .admin-tabs {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none;
+    flex-wrap: nowrap !important;
+    gap: 0.35rem !important;
+    padding-bottom: 2px !important;
+  }
+
+  .teachers-tabs::-webkit-scrollbar,
+  .admin-tabs::-webkit-scrollbar {
     display: none;
+  }
+
+  .teachers-tab-btn,
+  .admin-tab-btn {
+    flex-shrink: 0 !important;
+    font-size: 0.78rem !important;
+    padding: 0.45rem 0.75rem !important;
+    white-space: nowrap !important;
   }
 }
 
 /* Small Mobile Phones (<= 480px) */
 @media (max-width: 480px) {
   .app-topbar {
-    padding: 0.4rem 0.65rem;
+    padding: 0.4rem 0.6rem !important;
+    min-height: 52px !important;
   }
 
   .topbar-left {
-    max-width: 100%;
+    gap: 0.45rem !important;
   }
 
   .topbar-search {
-    display: none;
-    /* Accessible in students view/dialog */
+    display: none !important;
+  }
+
+  .topbar-actions {
+    gap: 0.35rem !important;
+  }
+
+  .badge-tag-select {
+    font-size: 0.68rem !important;
+    padding: 0.2rem 1.3rem 0.2rem 0.45rem !important;
+  }
+
+  .user-avatar {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 0.75rem !important;
   }
 
   .page-content {
-    padding: 0.65rem;
+    padding: 0.6rem !important;
   }
 
-  .kpi-card {
-    padding: 1rem;
+  .kpi-card,
+  .teachers-kpi-card,
+  .admin-kpi-card {
+    padding: 0.75rem 0.85rem !important;
   }
 
-  .kpi-value {
-    font-size: 1.4rem;
+  .kpi-value,
+  .teachers-kpi-value,
+  .admin-kpi-value {
+    font-size: 1.25rem !important;
   }
 
   .card {
-    padding: 1rem;
+    padding: 0.85rem !important;
   }
 
   .btn {
-    font-size: 0.8rem;
+    font-size: 0.8rem !important;
   }
 
   #toast-container {
-    bottom: 0.75rem;
-    right: 0.75rem;
-    left: 0.75rem;
+    bottom: 0.75rem !important;
+    right: 0.75rem !important;
+    left: 0.75rem !important;
+    max-width: calc(100vw - 1.5rem) !important;
   }
 
   .toast {
-    font-size: 0.8rem;
-    padding: 0.65rem 1rem;
+    font-size: 0.8rem !important;
+    padding: 0.65rem 0.85rem !important;
   }
 
-  /* Admin panel on small phones */
-  .admin-kpi-grid {
-    grid-template-columns: 1fr !important;
-  }
-
-  .admin-kpi-value {
-    font-size: 1.4rem;
-  }
-
-  /* Action buttons stack on very small screens */
   .action-btn-group {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: column !important;
+    align-items: stretch !important;
   }
 
   .btn-approve,
   .btn-reject {
-    width: 100%;
-    justify-content: center;
-    text-align: center;
+    width: 100% !important;
+    justify-content: center !important;
+    text-align: center !important;
   }
 }
 
-/* ==========================================================================
-   ENHANCED MOBILE RESPONSIVE OVERRIDES
-   Full mobile-first responsive fixes for all pages, tables, cards, divs
-   ========================================================================== */
-
-/* --- FIX: Tables switch from fixed to auto layout on mobile so columns  ---
-   --- can shrink and action buttons (3-dot / icon buttons) are never     ---
-   --- clipped or hidden.                                                 --- */
-@media (max-width: 768px) {
-  /* Let all data tables auto-size columns on mobile */
-  .data-table {
-    table-layout: auto !important;
-    min-width: 600px;
-  }
-
-  /* Ensure the scrollable container works properly */
-  .data-table-container {
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch;
-    max-width: 100vw;
-  }
-
-  /* Action buttons in table cells: never clip, always visible */
-  .data-table td:last-child,
-  .data-table th:last-child {
-    overflow: visible !important;
-    white-space: nowrap !important;
-    position: relative;
-    z-index: 1;
-  }
-
-  /* Action button groups wrap nicely on mobile */
-  .action-btns,
-  .action-btn-group {
-    display: flex !important;
-    flex-wrap: wrap;
-    gap: 0.3rem;
-    overflow: visible !important;
-    white-space: normal !important;
-  }
-
-  /* Make touch targets bigger on mobile (min 44px per WCAG) */
-  .action-btns .btn,
-  .action-btn-group .btn,
-  .data-table .btn-sm {
-    min-width: 36px;
-    min-height: 36px;
-    padding: 0.35rem 0.5rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-}
-
-/* --- Topbar: prevent overflow on all screen sizes --- */
-@media (max-width: 768px) {
-  .app-topbar {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .topbar-actions {
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-
-  .topbar-ay-selector {
-    order: -1;
-  }
-
-  .badge-tag-select {
-    font-size: 0.7rem;
-    padding: 0.2rem 0.5rem;
-    padding-right: 1.3rem;
-  }
-
-  .user-profile {
-    gap: 0.4rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .topbar-actions {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .badge-tag {
-    font-size: 0.68rem;
-    padding: 0.2rem 0.5rem;
-  }
-}
-
-/* --- Modal dialogs: full width on mobile --- */
-@media (max-width: 480px) {
-  .modal-dialog {
-    width: calc(100vw - 1rem) !important;
-    max-width: calc(100vw - 1rem) !important;
-    max-height: 95vh !important;
-    margin: 0.5rem !important;
-    border-radius: var(--radius-md) !important;
-  }
-
-  .modal-body {
-    padding: 0.85rem !important;
-  }
-
-  .modal-header {
-    padding: 0.85rem !important;
-  }
-
-  .modal-footer {
-    padding: 0.65rem 0.85rem !important;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-
-  .modal-footer .btn {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-/* --- Cards & surfaces: full width with no overflow on mobile --- */
-@media (max-width: 640px) {
-  .card {
-    border-radius: var(--radius-md);
-    padding: 0.85rem;
-    overflow: visible;
-  }
-
-  .card-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-
-  .kpi-card {
-    padding: 0.85rem;
-  }
-
-  .kpi-value {
-    font-size: 1.3rem;
-  }
-
-  .kpi-label {
-    font-size: 0.7rem;
-  }
-}
-
-/* --- Form rows: single column on mobile --- */
-@media (max-width: 480px) {
-  .form-row {
+/* Extra Small Phones (<= 360px) */
+@media (max-width: 360px) {
+  .dashboard-grid-kpi,
+  .students-stats-grid,
+  .payments-kpi-grid,
+  .expenses-kpi-grid,
+  .reports-kpi-grid,
+  .teachers-kpi-grid,
+  .admin-kpi-grid,
+  .overview-stats-grid {
     grid-template-columns: 1fr !important;
-    gap: 0.65rem;
   }
 
-  .form-control {
-    font-size: 16px; /* Prevents iOS zoom on focus */
-  }
-}
-
-/* --- Page action header: stack vertically on mobile --- */
-@media (max-width: 640px) {
-  .page-action-header {
-    flex-direction: column;
-    align-items: stretch !important;
-    gap: 0.75rem;
-  }
-
-  .page-action-header-right {
-    width: 100%;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .page-action-header-right .btn {
-    flex: 1 1 auto;
-    min-width: 0;
-    justify-content: center;
-    text-align: center;
-  }
-}
-
-/* --- Sidebar: improve touch area and smooth slide on mobile --- */
-@media (max-width: 1024px) {
-  .mobile-menu-btn {
-    display: inline-flex !important;
-    min-width: 40px;
-    min-height: 40px;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .app-sidebar {
-    width: 280px;
-    will-change: transform;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-  }
-
-  .sidebar-backdrop {
-    will-change: opacity;
-  }
-}
-
-/* --- Global: prevent any horizontal overflow anywhere --- */
-@media (max-width: 768px) {
-  .app-container {
-    max-width: 100vw;
-    overflow-x: hidden;
-  }
-
-  .app-main {
-    max-width: 100vw;
-    overflow-x: hidden;
-  }
-
-  .page-content {
-    max-width: 100vw;
-    overflow-x: hidden;
-  }
-
-  /* Any flex or grid child that might overflow */
-  .page-content > * {
-    max-width: 100%;
-    overflow-x: auto;
+  .page-action-header-right > * {
+    width: 100% !important;
   }
 }
 
